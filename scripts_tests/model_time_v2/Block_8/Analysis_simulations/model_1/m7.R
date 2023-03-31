@@ -9,8 +9,7 @@ compiler::enableJIT(3)
 # Loading database------
 #devtools::load_all() # loading my functions
 
-#data("data_1")
-load("/cloud/project/data/data_1.rda")
+data("data_1")
 head(data_1)
 ## Parse database------
 month_names <- factor(month.abb, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
@@ -40,7 +39,7 @@ data$precp[data$precp==0] <- 1
 # data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NULL)) %>%
 #   pull(y)
 
-yy =read.table("scripts_tests/model_time_v2/Block_8/simulation_4/alpha1ar1_m2.txt")
+yy =read.table("scripts_tests/model_time_v2/Block_8/simulation_4/model_1/1_alpha2ar1_m2.txt")
 # data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NULL)) %>%
 #   pull(y)
 data$RH <- yy %>% group_by(V2) %>% summarise(y = median (V1)) %>%
@@ -51,7 +50,7 @@ data$RH <- yy %>% group_by(V2) %>% summarise(y = median (V1)) %>%
 
 #p=10
 formula <- RH ~ lles|lles
-formula <- RH ~ sent + cost|semester
+#formula <- RH ~ sent + cost|semester
 mf <- model.frame(Formula::Formula(formula), data = data)
 y <- model.response(mf)
 cov_a <- model.matrix(Formula::Formula(formula), data = data, rhs = 1)
@@ -71,7 +70,8 @@ start_aux_lambdas = - betareg::betareg(formula = formula,
                                        data=data)$coefficients$precision
 fit <- coef(VGAM::vglm(RH ~ lles,family = "kumar", data = data, trace = F))
 start_aux_betas <- fit[c(1,3,5,7)]
-start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost,data=data ))
+#start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost,data=data ))
+start_aux_betas = coef(lm(-log(-log(RH)) ~ lles,data=data ))
 summary(fit)
 start_aux <-
   c(start_aux_betas,-.1,-.1)
@@ -94,11 +94,11 @@ par.cov.Gbase <-
   ),
   silent = T)
 
-if (class(par.cov.Gbase) == "try-error") {
-  par.cov.Gbase <- list()
-  par.cov.Gbase$par <- c(start_aux_betas,-.1,-.1,-.1)
-  break
-}
+# if (class(par.cov.Gbase) == "try-error") {
+#   par.cov.Gbase <- list()
+#   par.cov.Gbase$par <- c(start_aux_betas,-.1,-.1,-.1)
+#   break
+# }
 
 
 theta.start <-c(start_aux,.5) #c(par.cov.Gbase$par,.5)#

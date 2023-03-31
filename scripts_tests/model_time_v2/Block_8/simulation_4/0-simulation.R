@@ -61,8 +61,8 @@ tic <- tictoc::tic()
 p = 10 # manaus
 data <- database %>% filter(City == citys[p]) %>% slice((252 - TT):252)
 data$precp[data$precp == 0] <- 1
-#formula <- RH ~ lles|lles
-formula <- RH ~ sent + cost|semester
+formula <- RH ~ lles|lles-1
+#formula <- RH ~ sent + cost|semester
 mf <- model.frame(Formula::Formula(formula), data = data)
 y <- model.response(mf)
 cov_a <-
@@ -78,6 +78,7 @@ par.names <- c(paste0(colnames(cov_a), "_a"),
 # values paramenters -----------
 emv <- list()
 #emv$par = c(3.06857482, -0.06830916, 1.08626420, -4.89575000, 0.56244984) # m1
+#emv$par = c(3.06857482, -0.06830916, -4.89575000, 0.56244984) # m1
 emv$par = c(2.973018248,0.250886046,-0.001380885,-8.373751993,-0.309405318,0.676654152 )#m2
 theta = emv$par
 Beta = theta[1:ncx] # real
@@ -91,8 +92,8 @@ a = NULL
 a[1] = exp(xbeta[1])
 # geração forma geral -----
 alphas = c(.35,.5,.65,.80,.95)
-alphas = c(.35,.5,.65,.80,.95)
-model=2
+alphas = c(.5,.65,.80,.95)
+model=1
 n = 144
 N = 1
 u2 = NULL
@@ -116,7 +117,7 @@ for (bb in 1:B){
       y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
       path.sample <-
         paste0(
-          "scripts_tests/model_time_v2/Block_8/simulation_4/model_2/",bb,"_alpha",
+          "scripts_tests/model_time_v2/Block_8/simulation_4/model_1/",bb,"_alpha",
           al,
           "ar",
           arr,
@@ -160,12 +161,12 @@ for (bb in 1:B){
         for (k in 1:N) {
           #k=1
           #i=4
-          repeat{
-            u2 = runif(1,.10,1)
-            if(abs(u2-.10)>0.02 & abs(u2-1)>0.02)
-              break
-          }
-          #u2 = runif(1,0,1)
+          # repeat{
+          #   u2 = runif(1,.10,1)
+          #   if(abs(u2-.10)>0.02 & abs(u2-1)>0.02)
+          #     break
+          # }
+          u2 = runif(1,0,1)
           #repeat {
           int.yt = try (uniroot(
             p.cond,
@@ -198,7 +199,7 @@ for (bb in 1:B){
         }
         path.sample <-
           paste0(
-            "scripts_tests/model_time_v2/Block_8/simulation_4/model_2/",bb,"_alpha",
+            "scripts_tests/model_time_v2/Block_8/simulation_4/model_1/",bb,"_alpha",
             al,
             "ar",
             arr,

@@ -435,8 +435,9 @@ plot(al,l)
 
 emv1 = list()
 emv1$par <- c(emv.beta$par,emv.lambda$par,emv.alpha$par)
-emv
 emv1
+emv <- list()
+emv$par <- emv1$par
 gg = emv.lambda
  ff = sqrt(diag(-solve(gg$hessian)))
  gg$par+1.96*ff
@@ -495,10 +496,9 @@ acf(abs(mediana-y.id))
 nn=1
 yy = LAMBDA = Esp.lambda = G.base = NULL
 u1 = runif(nn)
-y1 = (1-exp( - (1/b[1])*(-log(1-u1))^(1/alpha) ) )^(1/a[1])
-yy[1] <- y[1]#y1[1]
+yy[1] <- y[1]
 G.base[1] <- pkumar(yy[1],a=a[1],b=b[1],lower.tail = F)
-LAMBDA[1] <- (-log(G.base[1]))
+LAMBDA[1] <- (-log(G.base[1]))^alpha
 
 for(t in 2:144){
   #t=4
@@ -543,135 +543,6 @@ mean(abs(y-yy)/y)
 
 mean((mediana-y.id)^2)
 mean(abs(mediana-y.id)/y)
-
-lines(mediana,col=3)
-acf((yy-y))
-plot.ts(y1)
-abline(h=median(y1))
-abline(h=y[tt])
-abline(h=mediana[tt])
-yt.y1[1] <- median(y1)
-qyt <- seq(0.001,1,by=0.001)
-
-
-
-
-for(i in 1:n){
-  cat(i,"\n")
-  u2 = runif(1)
-  #u2 <- runif(1,0,u1)
-  # int.yt=sapply(qyt,int,
-  #               l = 0,
-  #               y.t.1 = yt.y1[1],
-  #               at1 = a[1],
-  #               at = a[2],
-  #               bt1 = b[1],
-  #               bt = b[2],
-  #               alpha = alpha
-  # )
-  for(j in 1:length(qyt)){
-    #cat(j,"\n")
-    #j=1
-    int.yt = try(int(
-      up = qyt[j],
-      l = 0,
-      y.t.1 = yt.y1[1],
-      at1 = at1,
-      at = at,
-      bt1 = bt1,
-      bt = bt,
-      alpha = alpha
-    ),
-    silent = T
-    )
-    if(class(int.yt)=="try-error"){
-      next
-    }
-
-    if(abs(u2-int.yt)<10^(-3)){
-      y2.dado.y1[i] <- qyt[j]# qyt[which.min(dife)]
-      break
-    }
-
-
-  }
-  #int.x.y = sapply(qx,int,l=0,y=y)
-  # dife = abs(u2-int.yt)
-  # y2.dado.y1[i] <- qyt[which.min(dife)]
-}
-#hist(y2.dado.y1)
-plot.ts(na.omit(y2.dado.y1))
-abline(h=median(y2.dado.y1,na.rm = T))
-abline(h=mediana[tt+1])
-abline(h=y[tt+1])
-
-
-# geração forma geral -----
-n=10;N=100
-at1 = a[1]
-bt1 = b[1]
-u1 = runif(N)
-y1 = (1-exp( - (1/bt1)*(-log(u1))^(1/alpha) ) )^(1/at1)
-yt.y1 <- matrix(0,n,N)
-yt.y1[1,] <-  y1
-qyt <- seq(0.001,1,by=0.001)
-#seq.i = seq(3,5,2)
-for(i in 2:n){
-  cat(i,"\n")
-  at1 = a[i-1]
-  bt1 = b[i-1]
-  at = a[i]
-  bt = b[i]
-  #u2 <- runif(1,0,1)
-  for(k in 1:N){
-    u2 <- runif(1,0,1)
-    # int.yt=sapply(qyt,int,
-    #               l = 0,
-    #               y.t.1 = mean(yt.y1[i-1,]),
-    #               at1 = a[i-1],
-    #               at = a[i],
-    #               bt1 = 1/b[i-1],
-    #               bt = 1/b[i],
-    #               alpha = alpha
-    # )
-    for(j in 1:length(qyt)){
-      #cat(j,"\n")
-      #j=1
-      int.yt = try(int(
-        up = qyt[j],
-        l = 0,
-        y.t.1 = median(yt.y1[i-1,],na.rm = T),
-        at1 = at1,
-        at = at,
-        bt1 = bt1,
-        bt = bt,
-        alpha = alpha
-      ),
-      silent = T
-      )
-      if(class(int.yt)=="try-error"){
-        yt.y1[i,k] <- NA
-        next
-      }
-
-      if(abs(u2-int.yt)<10^(-3)){
-        yt.y1[i,k] <- qyt[j]# qyt[which.min(dife)]
-        break
-      }
-
-
-    }
-
-  }
-  #i=2
-}
-dd = 6
-plot.ts(na.omit(yt.y1[dd,]))
-abline(h=median(yt.y1[dd,],na.rm = T))
-abline(h=mediana[dd])
-abline(h=y[dd])
-
-
 
 
 

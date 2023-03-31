@@ -260,11 +260,16 @@ tic <- tictoc::tic()
 p=10
 data <- database %>% filter(City==citys[p]) %>% slice((252-TT):252)
 data$precp[data$precp==0] <- 1
-yy =read.table("scripts_tests/model_time_v2/Block_8/simulation_4/model_2/10_alpha5ar1_m2.txt")
-# data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NULL)) %>%
-#   pull(y)
-data$RH <- yy %>% group_by(V2) %>% summarise(y = median (V1)) %>%
+BB = 100
+emvs = matrix(0,BB,6)
+for(ii in 1:BB){
+#ii=2
+path <- paste0("scripts_tests/model_time_v2/Block_8/simulation_4/model_2/",ii,"_alpha3ar1_m2.txt")
+yy =read.table(path)
+data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NULL)) %>%
   pull(y)
+# data$RH <- yy %>% group_by(V2) %>% summarise(y = median (V1)) %>%
+#   pull(y)
 
  # yy =read.table("scripts_tests/model_time_v2/Block_8/simulation_1/alpha2_m1.txt")
  # data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NULL)) %>%
@@ -273,7 +278,7 @@ data$RH <- yy %>% group_by(V2) %>% summarise(y = median (V1)) %>%
 
 
  #p=10
-#formula <- RH ~ lles|lles
+#formula <- RH ~ lles|lles-1
 formula <- RH ~ sent + cost|semester
 #p=10
 mf <- model.frame(Formula::Formula(formula), data = data)
@@ -295,16 +300,16 @@ start_aux_lambdas = betareg::betareg(formula = formula,
                                      data=data)$coefficients$precision
 
 start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost,data=data ))
-
+#start_aux_betas = coef(lm(-log(-log(RH)) ~ lles,data=data ))
 start_aux <-
-  c(start_aux_betas,-.1,-.1)
+  c(start_aux_betas,-.1,-1)
 
 # start_aux <-
 #   c(start_aux_betas,start_aux_lambdas)
 
 par.cov.Gbase <-
   try(optim(
-    par =  c(start_aux_betas,-.1,-.1),
+    par =  c(start_aux_betas,-.1,-1),
     fn = log.like.kumar,
     control = list(fnscale = -1),
     method = "BFGS",
@@ -319,8 +324,8 @@ par.cov.Gbase <-
 
 if (class(par.cov.Gbase) == "try-error") {
   par.cov.Gbase <- list()
-  par.cov.Gbase$par <- c(start_aux_betas,-.1,-.1)
-  break
+  par.cov.Gbase$par <- c(start_aux_betas,-.1,-1)
+  #break
 }
 
 
@@ -348,7 +353,13 @@ emv <-
     hessian=T
   ),
   silent = T)
-emv
+
+emvs[ii,] <- emv$par
+}
+
+colMeans(emvs)
+conf = .05
+t(round(apply(emvs,2,quantile,c(conf/2,0.5,1-(conf/2))),3))
 # if (class(emv) == "try-error") {
 #   emv <- rep("NA", ncv+ncx+1)
 #   break

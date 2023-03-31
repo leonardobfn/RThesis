@@ -260,11 +260,12 @@ tic <- tictoc::tic()
 p=10
 data <- database %>% filter(City==citys[p]) %>% slice((252-TT):252)
 data$precp[data$precp==0] <- 1
-BB = 100
+BB = 1000
+model=1
 emvs = matrix(0,BB,6)
 for(ii in 1:BB){
-#ii=2
-path <- paste0("scripts_tests/model_time_v2/Block_8/simulation_4/model_2/",ii,"_alpha3ar1_m2.txt")
+  path <-
+    paste0("Data_simulation/Model_",model,"/simulations/","alpha50","/data",ii,".txt")
 yy =read.table(path)
 data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NULL)) %>%
   pull(y)
@@ -359,7 +360,7 @@ emvs[ii,] <- emv$par
 
 colMeans(emvs)
 conf = .05
-t(round(apply(emvs,2,quantile,c(conf/2,0.5,1-(conf/2))),3))
+t(round(apply(emvs[1:(ii-1),],2,quantile,c(conf/2,0.5,1-(conf/2))),3))
 # if (class(emv) == "try-error") {
 #   emv <- rep("NA", ncv+ncx+1)
 #   break

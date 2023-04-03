@@ -366,7 +366,7 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
   }
 
 library(snowfall)
-alphas = c(0.95,0.80,0.65,0.35) # values real alpha
+alphas = c(0.95,0.80,0.65,0.50,0.35) # values real alpha
 model = 1
 n = 144 # length of series
 MC = 1000
@@ -374,7 +374,7 @@ cpus <- 4
 ncv  = 2
 ncx=3
 data.labels <- paste0("data", 1:MC, ".txt")
-alphas = c(0.65)
+alphas = c(0.35)
 sfInit(parallel = TRUE, cpus = cpus)
 sfExportAll()
 sfLibrary(tidyr)
@@ -389,7 +389,7 @@ for (alpha. in alphas) {
   #                   fun=snowfall.estimates_method_2,
   #                   alpha = alpha.)
   sfLapply(
-    84:250,
+    1:MC,
     model = model,
     fun=snowfall.estimates_method_2,
     alpha = alpha.
@@ -400,7 +400,8 @@ sfStop()
 #1603.73 sec elapsed 95
 #2851.64 sec 80
 #1726.08 + 346.71 sec elapsed sec elapsed 65
-
+# 976 sec al 50
+# 493.37 sec elapsed
 # estimate - for -------
 erro = 10 ^ (-4)
 model = 1

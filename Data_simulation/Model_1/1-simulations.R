@@ -1,17 +1,11 @@
 rm(list = ls())
 
-#
-dir.create("Data_simulation/Model_1/simulations/alpha50")
-dir.create("Data_simulation/Model_1/simulations/alpha65")
-dir.create("Data_simulation/Model_1/simulations/alpha80")
-dir.create("Data_simulation/Model_1/simulations/alpha95")
-
 # packages--------------
 require(tidyr)
 require(dplyr)
 require(extraDistr)
 require(ggplot2)
-source("scripts_tests/model_time_v2/Block_8/auxiliary_functions.R")
+source("auxiliary_functions.R")
 compiler::enableJIT(3)
 
 # Loading database------
@@ -77,7 +71,8 @@ cov_delta <-
   model.matrix(Formula::Formula(formula), data = data, rhs = 2)
 ncx <- ncol(cov_a)
 ncv <- ncol(cov_delta)
-
+par_names <- c(paste0(colnames(cov_a),"_a"),
+               paste0(colnames(cov_delta),"_delta"))
 # values real paramenters betas and lambdas -----------
 
 emv <- list()
@@ -86,6 +81,9 @@ emv$par = c(2.973018248,
             -0.001380885,
             -8.373751993,
             -0.309405318)
+# emvs <- data.frame(real_values=emv$par,par_names = par_names)
+# write.table(emvs,"Data_simulation/real_par_model_1.txt",col.names = T,sep=" ")
+# read.table("Data_simulation/real_par_model_1.txt")
 theta = emv$par
 Beta = theta[1:ncx] # real
 lambda = theta[(ncx + 1):c(ncx + ncv)] # real
@@ -98,150 +96,8 @@ a = exp(xbeta)
 # simulations-----
 
 
-snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
-  #id=1
-  # alpha = 0.5
-  # alpha = 0.8
-
-  alpha.value <- switch (
-    as.character(alpha),
-    "0.5" = "alpha50",
-    "0.65" = "alpha65",
-    "0.8" = "alpha80",
-    "0.95" = "alpha95"
-  )
-
-  path.sample <-
-    paste0("Data_simulation/Model_",
-           model,
-           "/simulations/",
-           alpha.value,
-           "/data",
-           MC,
-           ".txt")
-
-  yt.y1 = matrix(0, nn, 1)
-
-  at1 = a[1]
-  bt1 = b[1]
-  u1 = runif(1)
-  G = (1-.8^(1/b[1]))^a[1]
-  y1.. = exp(-  (-log(G))^alpha )
-  u1 = runif(1,0,y1..)
-  y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
-  yt.y1[1] <-  y1
-
-  y.aux <- data.frame(y.sim = yt.y1[1],
-                      t = 1,
-                      alpha = alpha)
-
-  write.table(
-    y.aux,
-    path.sample,
-    sep = " ",
-    append = T,
-    quote = T,
-    row.names = F,
-    col.names = F
-  )
-
-  for (i in 2:nn) {
-    at1 = a[i - 1]
-    bt1 = b[i - 1]
-    at = a[i]
-    bt = b[i]
-
-    # repeat{
-    #   u2 = runif(1,0,1)
-    #   if(abs(u2-0)>0.02 & abs(u2-1)>0.02)
-    #     break
-    # }
-
-    u2 = runif(1, 0, 1)
-
-    int.yt = try (uniroot(
-      p.cond,
-      interval = c(0, 1),
-      u = 1 - u2,
-      y.t.1 = yt.y1[i - 1],
-      at1 = at1,
-      at = at,
-      bt1 = bt1,
-      bt = bt,
-      alpha = alpha
-    ),
-    silent = T)
-
-    if (class(int.yt) == "try-error") {
-      repeat {
-        u2 = runif(1, 0, 1)
-        at1 = a[i - 2]
-        bt1 = b[i - 2]
-        at = a[i - 1]
-        bt = b[i - 1]
-
-        int.yt = try (uniroot(
-          p.cond,
-          interval = c(0, 1),
-          u = 1 - u2,
-          y.t.1 = yt.y1[i - 2],
-          at1 = at1,
-          at = at,
-          bt1 = bt1,
-          bt = bt,
-          alpha = alpha
-        ),
-        silent = T)
-
-        yt.y1[i - 1] <- int.yt$root
-
-        u2 = runif(1, 0, 1)
-        at1 = a[i - 1]
-        bt1 = b[i - 1]
-        at = a[i]
-        bt = b[i]
-
-        int.yt = try (uniroot(
-          p.cond,
-          interval = c(0, 1),
-          u = 1 - u2,
-          y.t.1 = yt.y1[i - 1],
-          at1 = at1,
-          at = at,
-          bt1 = bt1,
-          bt = bt,
-          alpha = alpha
-        ),
-        silent = T)
-
-        if (class(int.yt) != "try-error") {
-          break
-        }
-
-      }
-    }
-
-    yt.y1[i] <- int.yt$root
-
-    y.aux <- data.frame(y.sim = yt.y1[i],
-                        t = i,
-                        alpha = alpha)
-
-    write.table(
-      y.aux,
-      path.sample,
-      sep = " ",
-      append = T,
-      quote = T,
-      row.names = F,
-      col.names = F
-    )
-  }
-
-}
-
 library(snowfall)
-alphas = c(0.50, 0.65, 0.80, 0.95) # values real alpha
+alphas = c(0.35,0.50, 0.65, 0.80, 0.95) # values real alpha
 model = 1
 n = 144 # length of series
 MC = 1000
@@ -259,8 +115,9 @@ for (alpha. in alphas) {
     nn = n,
     a = a,
     b = b,
-    alpha = 0.5
+    alpha = alpha.
   )
 }
 toc <- tictoc::toc()
 sfStop()
+#934.99 sec elapsed

@@ -1,0 +1,36 @@
+
+# Model 1
+dir.create("Data_simulation/Model_1")
+dir.create("Data_simulation/Model_1/simulations")
+dir.create("Data_simulation/Model_1/simulations/alpha35")
+dir.create("Data_simulation/Model_1/simulations/alpha50")
+dir.create("Data_simulation/Model_1/simulations/alpha65")
+dir.create("Data_simulation/Model_1/simulations/alpha80")
+dir.create("Data_simulation/Model_1/simulations/alpha95")
+dir.create("Data_simulation/Model_1/estimates")
+dir.create("Data_simulation/Model_1/estimates/Method_1")
+dir.create("Data_simulation/Model_1/estimates/Method_1/estimates")
+dir.create("Data_simulation/Model_1/estimates/Method_1/hessian")
+dir.create("Data_simulation/Model_1/estimates/Method_2")
+dir.create("Data_simulation/Model_1/estimates/Method_2/estimates")
+dir.create("Data_simulation/Model_1/estimates/Method_2/hessian")
+
+
+# Model 2
+dir.create("Data_simulation/Model_2")
+dir.create("Data_simulation/Model_2/simulations")
+dir.create("Data_simulation/Model_2/simulations/alpha35")
+dir.create("Data_simulation/Model_2/simulations/alpha50")
+dir.create("Data_simulation/Model_2/simulations/alpha65")
+dir.create("Data_simulation/Model_2/simulations/alpha80")
+dir.create("Data_simulation/Model_2/simulations/alpha95")
+dir.create("Data_simulation/Model_2/estimates")
+# Model 3
+dir.create("Data_simulation/Model_3")
+dir.create("Data_simulation/Model_3/simulations")
+dir.create("Data_simulation/Model_3/simulations/alpha35")
+dir.create("Data_simulation/Model_3/simulations/alpha50")
+dir.create("Data_simulation/Model_3/simulations/alpha65")
+dir.create("Data_simulation/Model_3/simulations/alpha80")
+dir.create("Data_simulation/Model_3/simulations/alpha95")
+dir.create("Data_simulation/Model_3/estimates")

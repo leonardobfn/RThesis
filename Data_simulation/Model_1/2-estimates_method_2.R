@@ -215,6 +215,8 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
     repeat {
 
       if(length(which(is.na(estimates.aux$par)==T))>0){
+        par.covariates.up = list()
+        par.covariates.up$value =0
         emv <- rep(NA,ncx+ncv+1)
         break
       }
@@ -233,6 +235,8 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
 
       if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F |
          derivate_numerator==0){
+        par.covariates.up = list()
+        par.covariates.up$value =0
         emv <- rep(NA,ncx+ncv+1)
         break
       }
@@ -243,6 +247,8 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
 
       if(class(derivate_denominator)=="try-error" | is.finite(derivate_denominator)==F |
          derivate_denominator==0){
+        par.covariates.up = list()
+        par.covariates.up$value =0
         emv <- rep(NA,ncx+ncv+1)
         break
       }
@@ -266,6 +272,8 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
         silent = T)
 
       if(class(par.covariates.up)=="try-error"){
+        par.covariates.up = list()
+        par.covariates.up$value =0
         emv <- rep(NA,ncx+ncv+1)
         break
       }
@@ -366,7 +374,7 @@ cpus <- 4
 ncv  = 2
 ncx=3
 data.labels <- paste0("data", 1:MC, ".txt")
-alphas = c(0.80)
+alphas = c(0.65)
 sfInit(parallel = TRUE, cpus = cpus)
 sfExportAll()
 sfLibrary(tidyr)
@@ -381,7 +389,7 @@ for (alpha. in alphas) {
   #                   fun=snowfall.estimates_method_2,
   #                   alpha = alpha.)
   sfLapply(
-    1:MC,
+    84:250,
     model = model,
     fun=snowfall.estimates_method_2,
     alpha = alpha.
@@ -391,15 +399,16 @@ toc <- tictoc::toc()
 sfStop()
 #1603.73 sec elapsed 95
 #2851.64 sec 80
-
+#1726.08 + 346.71 sec elapsed sec elapsed 65
 
 # estimate - for -------
 erro = 10 ^ (-4)
 model = 1
 alphas = c(0.95,0.80,0.50, 0.65,0.35)
-alphas = c(0.95)
+alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
+  alpha = 0.65
 alpha.value <- switch (
   as.character(alpha),
   "0.35" = "alpha35",
@@ -411,6 +420,7 @@ alpha.value <- switch (
 
 id = c(1:5)
 for (steps in id) {
+  steps=84
   path.sample <-
 
     paste0("Data_simulation/Model_",
@@ -603,6 +613,8 @@ for (steps in id) {
   repeat {
 
     if(length(which(is.na(estimates.aux$par)==T))>0){
+      par.covariates.up = list()
+      par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
       break
     }
@@ -621,6 +633,8 @@ for (steps in id) {
 
     if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F |
        derivate_numerator==0){
+      par.covariates.up = list()
+      par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
       break
     }
@@ -631,6 +645,8 @@ for (steps in id) {
 
     if(class(derivate_denominator)=="try-error" | is.finite(derivate_denominator)==F |
        derivate_denominator==0){
+      par.covariates.up = list()
+      par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
       break
     }
@@ -654,6 +670,8 @@ for (steps in id) {
       silent = T)
 
     if(class(par.covariates.up)=="try-error"){
+      par.covariates.up = list()
+      par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
       break
     }
@@ -670,8 +688,7 @@ for (steps in id) {
     }
   }
 
-  if(class(par.covariates.up)!="try-error" & par.covariates.up$value ==0)
-  {
+  if(class(par.covariates.up)!="try-error" & par.covariates.up$value ==0){
     emv <- rep(NA,ncx+ncv+1)
   }
 

@@ -1,0 +1,6 @@
+"real_values" "par_names"
+"1" 2.969847318 "(Intercept)_a"
+"2" 0.250957966 "sent_a"
+"3" -0.001368424 "cost_a"
+"4" -8.349852355 "semester1_delta"
+"5" -8.658012044 "semester2_delta"

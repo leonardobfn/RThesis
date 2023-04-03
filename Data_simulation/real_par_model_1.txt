@@ -1,6 +1,3 @@
-"real_values" "par_names"
-"1" 2.973018248 "(Intercept)_a"
-"2" 0.250886046 "sent_a"
-"3" -0.001380885 "cost_a"
-"4" -8.373751993 "(Intercept)_delta"
-"5" -0.309405318 "semester2_delta"
+version https://git-lfs.github.com/spec/v1
+oid sha256:b3aeb7ef348747e30a5f61589969e60cb372628cd898bc6c59c09d826cc36cf7
+size 187

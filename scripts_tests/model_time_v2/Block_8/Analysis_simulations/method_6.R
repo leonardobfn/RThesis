@@ -260,12 +260,12 @@ tic <- tictoc::tic()
 p=10
 data <- database %>% filter(City==citys[p]) %>% slice((252-TT):252)
 data$precp[data$precp==0] <- 1
-BB = 1000
-model=1
+BB = 50
+model=2
 emvs = matrix(0,BB,6)
 for(ii in 1:BB){
   path <-
-    paste0("Data_simulation/Model_",model,"/simulations/","alpha50","/data",ii,".txt")
+    paste0("Data_simulation/Model_",model,"/simulations/","alpha35","/data",ii,".txt")
 yy =read.table(path)
 data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NULL)) %>%
   pull(y)
@@ -280,10 +280,13 @@ data$RH <- yy %>% group_by(V2) %>% summarise(y = sample (V1,1,replace=T,prob=NUL
 
  #p=10
 #formula <- RH ~ lles|lles-1
-formula <- RH ~ sent + cost|semester
+formula <- RH ~ sent + cost|semester-1
 #p=10
 mf <- model.frame(Formula::Formula(formula), data = data)
 y <- model.response(mf)
+y[which(y==1)] <- .98
+y[which(y==0)] <- .Machine$double.eps
+data$RH  <- y
 cov_a <- model.matrix(Formula::Formula(formula), data = data, rhs = 1)
 cov_delta <- model.matrix(Formula::Formula(formula), data = data, rhs = 2)
 # write.table(cov_a,"scripts_tests/Block_1/cov_a_manaus_m4s1.txt")
@@ -355,12 +358,33 @@ emv <-
   ),
   silent = T)
 
+if(class(emv)=="try-error"){
+  theta.start <- c(start_aux,.5)
+  emv <-
+    try(optim(
+      par =theta.start,
+      fn = f.cond,
+      control = list(fnscale = -1),
+      method = "BFGS",
+      # method = "L-BFGS-B",
+      #  lower = c(rep(-Inf,ncx+ncv),0.50),
+      # upper = c(rep(Inf,ncx+ncv),0.95),
+      x = cov_a,
+      w = cov_delta,
+      y = y,
+      hessian=T
+    ),
+    silent = T)
+}
+
 emvs[ii,] <- emv$par
+cat(ii/BB,"\r")
 }
 
 colMeans(emvs)
 conf = .05
-t(round(apply(emvs[1:(ii-1),],2,quantile,c(conf/2,0.5,1-(conf/2))),3))
+t(round(apply(emvs,2,quantile,c(conf/2,0.5,1-(conf/2))),3))
+hist(emvs[,6])
 # if (class(emv) == "try-error") {
 #   emv <- rep("NA", ncv+ncx+1)
 #   break
@@ -568,8 +592,8 @@ t(round(apply(emvs[1:(ii-1),],2,quantile,c(conf/2,0.5,1-(conf/2))),3))
 diag(solve(-emv$hessian))
 
 sdd = sqrt(diag(solve(-emv$hessian)))
-emv$par-2.06*sdd
-emv$par+2.06*sdd
+emv$par-1.96*sdd
+emv$par+1.96*sdd
 emv
 
 

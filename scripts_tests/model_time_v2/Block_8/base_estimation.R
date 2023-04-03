@@ -3,7 +3,7 @@ require(tidyr)
 require(dplyr)
 require(extraDistr)
 require(ggplot2)
-source("scripts_tests/model_time_v2/Block_8/auxiliary_functions.R")
+source("auxiliary_functions.R")
 compiler::enableJIT(3)
 
 # Loading database------
@@ -36,7 +36,7 @@ tic <- tictoc::tic()
 p=10
 data <- database %>% filter(City==citys[p]) %>% slice((252-TT):252)
 data$precp[data$precp==0] <- 1
-formula <- RH ~ sent + cost|semester
+formula <- RH ~ sent + cost-1|semester
 mf <- model.frame(Formula::Formula(formula), data = data)
 y <- model.response(mf)
 cov_a <- model.matrix(Formula::Formula(formula), data = data, rhs = 1)
@@ -56,7 +56,7 @@ start_aux_lambdas = - betareg::betareg(formula = formula,
                                        data=data)$coefficients$precision
 fit <- coef(VGAM::vglm(RH ~ lles,family = "kumar", data = data, trace = F))
 start_aux_betas <- fit[c(1,3,5,7)]
-start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost,data=data ))
+start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost-1,data=data ))
 summary(fit)
 start_aux <-
   c(start_aux_betas,-.1,-.1)

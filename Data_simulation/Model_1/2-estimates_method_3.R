@@ -5,7 +5,7 @@ rm(list = ls())
 require(dplyr)
 require(extraDistr)
 source("auxiliary_functions.R")
-compiler::enableJIT(3)
+compiler::enableJIT(3) #
 
 
 snowfall.estimates_Method_3 = function(steps, model, alpha,erro = 10 ^ (-4)){

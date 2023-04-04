@@ -409,22 +409,18 @@ alphas = c(0.95,0.80,0.50, 0.65,0.35)
 alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
-  alpha = 0.65
-alpha.value <- switch (
-  as.character(alpha),
-  "0.35" = "alpha35",
-  "0.5" = "alpha50",
-  "0.65" = "alpha65",
-  "0.8" = "alpha80",
-  "0.95" = "alpha95"
-)
+  alpha = 0.35
+  steps = 252
 
-id = c(1:5)
-for (steps in id) {
-  steps=84
-  path.sample <-
-
-    paste0("Data_simulation/Model_",
+    alpha.value <- switch (
+      as.character(alpha),
+      "0.35" = "alpha35",
+      "0.5" = "alpha50",
+      "0.65" = "alpha65",
+      "0.8" = "alpha80",
+      "0.95" = "alpha95"
+    )
+    path.sample <- paste0("Data_simulation/Model_",
            model,
            "/simulations/",
            alpha.value,
@@ -632,8 +628,8 @@ for (steps in id) {
                                    v = v,
                                    alpha = alpha.up)$dvn)
 
-    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F |
-       derivate_numerator==0){
+    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F
+       ){
       par.covariates.up = list()
       par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
@@ -644,8 +640,9 @@ for (steps in id) {
                                      v = v,
                                      alpha = alpha.up)$dvn)
 
-    if(class(derivate_denominator)=="try-error" | is.finite(derivate_denominator)==F |
+    if(class(derivate_denominator)=="try-error" | is.finite(derivate_denominator)==F|
        derivate_denominator==0){
+
       par.covariates.up = list()
       par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
@@ -665,7 +662,7 @@ for (steps in id) {
         x = cov_a,
         w = cov_delta,
         y = y,
-        Etil1 = Esp.z,
+        Etil1 =  as.numeric(Esp.z),
         hessian = T
       ),
       silent = T)
@@ -689,7 +686,8 @@ for (steps in id) {
     }
   }
 
-  if(class(par.covariates.up)!="try-error" & par.covariates.up$value ==0){
+  if(class(par.covariates.up)!="try-error" & par.covariates.up$value ==0)
+  {
     emv <- rep(NA,ncx+ncv+1)
   }
 
@@ -725,7 +723,7 @@ for (steps in id) {
     alpha.value,
     ".txt"
   )
-  if(length(which(is.na(emv)==T)>1)){
+  if(length(which(is.na(emv)==T)>0)){
     par.covariates.up = list()
     par.covariates.up$hessian <- matrix(0,ncx+ncv,ncx+ncv)
   }
@@ -748,7 +746,7 @@ for (steps in id) {
     alpha.value,
     ".txt"
   )
-  if(length(which(is.na(emv)==T)>1)){
+  if(length(which(is.na(emv)==T)>0)){
     emv.alpha = list()
     emv.alpha$hessian <- matrix(0,1,1)
   }

@@ -14,6 +14,9 @@ dir.create("Data_simulation/Model_1/estimates/Method_1/hessian")
 dir.create("Data_simulation/Model_1/estimates/Method_2")
 dir.create("Data_simulation/Model_1/estimates/Method_2/estimates")
 dir.create("Data_simulation/Model_1/estimates/Method_2/hessian")
+dir.create("Data_simulation/Model_1/estimates/Method_3")
+dir.create("Data_simulation/Model_1/estimates/Method_3/estimates")
+dir.create("Data_simulation/Model_1/estimates/Method_3/hessian")
 
 
 # Model 2

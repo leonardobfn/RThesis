@@ -1,6 +1,6 @@
 require(tidyr)
 require(dplyr)
-dados = read.table("Data_simulation/Model_1/estimates/Method_2/estimates/estimatesalpha35")
+dados = read.table("Data_simulation/Model_1/estimates/Method_1/estimates/estimatesalpha35")
 head(dados,10)
 conf = .05
 est = dados %>% group_by(V3) %>% summarise(m = median(V2,na.rm=T),

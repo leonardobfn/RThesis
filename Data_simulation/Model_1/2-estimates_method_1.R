@@ -1,6 +1,6 @@
 rm(list = ls())
 
-packages--------------
+#packages--------------
 require(tidyr)
 require(dplyr)
 require(extraDistr)

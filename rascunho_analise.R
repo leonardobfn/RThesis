@@ -1,6 +1,7 @@
+rm(list=ls())
 require(tidyr)
 require(dplyr)
-dados = read.table("Data_simulation/Model_1/estimates/Method_1/estimates/estimatesalpha35")
+dados = read.table("Data_simulation/Model_1/estimates/Method_2/estimates/estimatesalpha35.txt")
 head(dados,10)
 conf = .05
 est = dados %>% group_by(V3) %>% summarise(m = median(V2,na.rm=T),
@@ -20,3 +21,4 @@ est = dados %>% group_by(V3) %>% summarise(m = median(V2,na.rm=F),
                                            up = quantile(V2,1-(conf/2),na.rm=F))
 
 dados %>% slice(which(is.na(V2)==T)) %>% pull(V1) %>% unique() %>% length()
+

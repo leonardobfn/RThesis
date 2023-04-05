@@ -180,8 +180,8 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
                                    v = v,
                                    alpha = alpha.up)$dvn)
 
-    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F
-    ){
+    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F|
+       derivate_numerator==0){
       par.covariates.up = list()
       par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
@@ -249,7 +249,8 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     model,
     "/estimates/Method_1/estimates/",
     "estimates",
-    alpha.value
+    alpha.value,
+    ".txt"
   )
 
   estimates = data.frame(steps, emv, par_names)
@@ -321,7 +322,7 @@ MC = 1000
 cpus <- 4
 ncv  = 2
 ncx=3
-alphas = c(0.50,0.35)
+alphas = c(0.95)
 sfInit(parallel = TRUE, cpus = cpus)
 sfExportAll()
 sfLibrary(tidyr)
@@ -354,9 +355,9 @@ alphas = c(0.95,0.80,0.50, 0.65,0.35)
 alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
-  alpha = 0.35
-  steps = 404
-
+  alpha = 0.95
+  steps = 377
+  30 299 377 513
   alpha.value <- switch (
     as.character(alpha),
     "0.35" = "alpha35",
@@ -523,8 +524,8 @@ for(alpha in alphas ){
                                    v = v,
                                    alpha = alpha.up)$dvn)
 
-    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F
-    ){
+    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F|
+       derivate_numerator==0){
       par.covariates.up = list()
       par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
@@ -592,7 +593,8 @@ for(alpha in alphas ){
     model,
     "/estimates/Method_1/estimates/",
     "estimates",
-    alpha.value
+    alpha.value,
+    ".txt"
   )
 
   estimates = data.frame(steps, emv, par_names)

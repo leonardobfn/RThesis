@@ -353,8 +353,8 @@ alphas = c(0.95,0.80,0.50, 0.65,0.35)
 alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
-  alpha = 0.35
-  steps = 252
+  alpha = 0.50
+  steps = 2
 
   alpha.value <- switch (
     as.character(alpha),

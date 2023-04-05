@@ -1,6 +1,6 @@
 rm(list = ls())
 
-packages--------------
+#packages--------------
 require(tidyr)
 require(dplyr)
 require(extraDistr)
@@ -199,7 +199,9 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
       }
 
 
-      if (abs(emv.alpha$par - alpha) < erro) {
+      theta.up <- c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+      crit <- sum(((theta.up - theta.start)/ theta.start)^2)
+      if (crit< erro) {
         estimates.aux = list()
         estimates.aux$par <- c(emv.beta$par, emv.lambda$par, emv.alpha$par)
         break
@@ -324,10 +326,9 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
       model,
       "/estimates/Method_2/hessian/",
       "hessianCov_",
-      alpha.value,
-      ".txt"
+      alpha.value
     )
-    if(length(which(is.na(emv)==T)>0)){
+    if(length(which(is.na(emv)==T))>0){
       par.covariates.up = list()
       par.covariates.up$hessian <- matrix(0,ncx+ncv,ncx+ncv)
     }
@@ -347,10 +348,9 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
       model,
       "/estimates/Method_2/hessian/",
       "hessian_",
-      alpha.value,
-      ".txt"
+      alpha.value
     )
-    if(length(which(is.na(emv)==T)>0)){
+    if(length(which(is.na(emv)==T))>0){
       emv.alpha = list()
       emv.alpha$hessian <- matrix(0,1,1)
     }
@@ -403,6 +403,13 @@ sfStop()
 # 976 sec al 50
 # 493.37 sec elapsed
 # estimate - for -------
+rm(list = ls())
+#packages--------------
+require(tidyr)
+require(dplyr)
+require(extraDistr)
+source("auxiliary_functions.R")
+compiler::enableJIT(3)
 erro = 10 ^ (-4)
 model = 1
 alphas = c(0.95,0.80,0.50, 0.65,0.35)
@@ -410,7 +417,7 @@ alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
   alpha = 0.35
-  steps = 252
+  steps =  914
 
     alpha.value <- switch (
       as.character(alpha),
@@ -594,7 +601,9 @@ for(alpha in alphas ){
     }
 
 
-    if (abs(emv.alpha$par - alpha) < erro) {
+    theta.up <- c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+    crit <- sum(((theta.up - theta.start)/ theta.start)^2)
+    if (crit< erro) {
       estimates.aux = list()
       estimates.aux$par <- c(emv.beta$par, emv.lambda$par, emv.alpha$par)
       break
@@ -628,8 +637,8 @@ for(alpha in alphas ){
                                    v = v,
                                    alpha = alpha.up)$dvn)
 
-    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F
-       ){
+    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F|
+       derivate_numerator==0){
       par.covariates.up = list()
       par.covariates.up$value =0
       emv <- rep(NA,ncx+ncv+1)
@@ -697,7 +706,8 @@ for(alpha in alphas ){
     model,
     "/estimates/Method_2/estimates/",
     "estimates",
-    alpha.value
+    alpha.value,
+    ".txt"
   )
 
   estimates = data.frame(steps, emv, par_names)

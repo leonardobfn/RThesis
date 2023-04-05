@@ -237,7 +237,8 @@ snowfall.estimates_Method_3 = function(steps, model, alpha,erro = 10 ^ (-4)){
     model,
     "/estimates/Method_3/estimates/",
     "estimates",
-    alpha.value
+    alpha.value,
+    ".txt"
   )
 
   estimates = data.frame(steps, emv, par_names)

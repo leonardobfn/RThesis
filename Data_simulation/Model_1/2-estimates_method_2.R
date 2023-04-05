@@ -303,7 +303,8 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
       model,
       "/estimates/Method_2/estimates/",
       "estimates",
-      alpha.value
+      alpha.value,
+      ".txt"
     )
 
     estimates = data.frame(steps, emv, par_names)
@@ -326,7 +327,8 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
       model,
       "/estimates/Method_2/hessian/",
       "hessianCov_",
-      alpha.value
+      alpha.value,
+      ".txt"
     )
     if(length(which(is.na(emv)==T))>0){
       par.covariates.up = list()
@@ -348,7 +350,8 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
       model,
       "/estimates/Method_2/hessian/",
       "hessian_",
-      alpha.value
+      alpha.value,
+      ".txt"
     )
     if(length(which(is.na(emv)==T))>0){
       emv.alpha = list()
@@ -417,7 +420,7 @@ alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
   alpha = 0.35
-  steps =  914
+  steps =  27
 
     alpha.value <- switch (
       as.character(alpha),

@@ -168,12 +168,16 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
       break
     }
     #       # Step E-----
-    v <- V(
+    v <- try(V(
       theta = par.covariates.start,
       x = cov_a,
       w = cov_delta,
       y = y
-    )
+    ),silent = T)
+
+    if(class(v)=="try-error"){
+      v = NA
+    }
 
 
     derivate_numerator <- try(d_vn(N = length(y) + 1,
@@ -214,7 +218,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
         x = cov_a,
         w = cov_delta,
         y = y,
-        Etil1 =  as.numeric(Esp.z),
+        Etil1 =  Esp.z,
         hessian = T
       ),
       silent = T)
@@ -238,7 +242,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     }
   }
 
-  if(class(par.covariates.up)!="try-error" & par.covariates.up$value ==0)
+  if((class(par.covariates.up)!="try-error" & par.covariates.up$value ==0))
   {
     emv <- rep(NA,ncx+ncv+1)
   }
@@ -276,7 +280,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     alpha.value,
     ".txt"
   )
-  if(length(which(is.na(emv)==T)>0)){
+  if(length(which(is.na(emv)==T))>0){
     par.covariates.up = list()
     par.covariates.up$hessian <- matrix(0,ncx+ncv,ncx+ncv)
   }
@@ -299,7 +303,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     alpha.value,
     ".txt"
   )
-  if(length(which(is.na(emv)==T)>0)){
+  if(length(which(is.na(emv)==T))>0){
     emv.alpha = list()
     emv.alpha$hessian <- matrix(0,1,1)
   }
@@ -357,7 +361,6 @@ tic <- tictoc::tic()
 for(alpha in alphas ){
   alpha = 0.95
   steps = 377
-  30 299 377 513
   alpha.value <- switch (
     as.character(alpha),
     "0.35" = "alpha35",

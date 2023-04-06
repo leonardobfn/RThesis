@@ -2,7 +2,7 @@ rm(list=ls())
 require(tidyr)
 require(dplyr)
 
-dados1 = read.table("Data_simulation/Model_1/estimates/Method_3/par_estimates/estimatesalpha95.txt")
+dados1 = read.table("Data_simulation/Model_1/estimates/Method_3/estimates/estimatesalpha95.txt")
 dados2 = read.table("Data_simulation/Model_1/estimates/Method_3/hessian/hessianCovbeta_alpha95.txt")
 dados3 = read.table("Data_simulation/Model_1/estimates/Method_3/hessian/hessianCovLambda_alpha95.txt")
 dados4 = read.table("Data_simulation/Model_1/estimates/Method_3/hessian/hessian_alpha95.txt")
@@ -22,7 +22,7 @@ length(id)
 dados1 %>% filter(V1 %in% c(709 ,733))
 
 
-est = dados %>% group_by(V3) %>% summarise(m = median(V2,na.rm=F),
+est = dados1 %>% group_by(V3) %>% summarise(m = median(V2,na.rm=F),
                                            l = quantile(V2,conf/2,na.rm=F),
                                            up = quantile(V2,1-(conf/2),na.rm=F))
 

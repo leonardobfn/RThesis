@@ -354,7 +354,7 @@ alphas = c(0.95,0.80,0.50, 0.65,0.35)
 alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
-  alpha = 0.50
+  alpha = 0.35
   steps = 2
 
   alpha.value <- switch (
@@ -365,6 +365,8 @@ for(alpha in alphas ){
     "0.8" = "alpha80",
     "0.95" = "alpha95"
   )
+  idx = 1:1000
+  for(steps in idx){
   path.sample <- paste0("Data_simulation/Model_",
                         model,
                         "/simulations/",
@@ -580,7 +582,8 @@ for(alpha in alphas ){
     model,
     "/estimates/Method_3/estimates/",
     "estimates",
-    alpha.value
+    alpha.value,
+    ".txt"
   )
 
   estimates = data.frame(steps, emv, par_names)

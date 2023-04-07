@@ -75,15 +75,18 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     silent = T)
 
   if (class(par.cov.Gbase) == "try-error") {
-    start_aux_lambdas = betareg::betareg(
+    start_aux_lambdas = try(betareg::betareg(
       formula = formula,
       link = "loglog",
       link.phi = "log",
       data = data
-    )$coefficients$precision
-
-    start_aux <-
-      c(start_aux_betas, start_aux_lambdas)
+    )$coefficients$precision,silent = T)
+    if(class(start_aux_lambdas)=="try-error"){
+      start_aux = c(start_aux_betas,-2,-2)
+    }else{
+      start_aux <-
+        c(start_aux_betas, start_aux_lambdas)
+    }
 
     par.cov.Gbase <-
       try(optim(
@@ -147,7 +150,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     ),
     silent = T)
 
-  if(class(emv.alpha)=="try-error"){
+  if(class(emv.alpha)=="try-error"|emv.alpha$value==0){
     estimates.aux = list()
     estimates.aux$par = rep(NA,ncx+ncv+1)
   }else{
@@ -283,9 +286,12 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
   if(length(which(is.na(emv)==T))>0){
     par.covariates.up = list()
     par.covariates.up$hessian <- matrix(0,ncx+ncv,ncx+ncv)
+    hessianCov = cbind(steps, par.covariates.up$hessian)
+  }else{
+    hessianCov = cbind(steps, par.covariates.up$hessian)
   }
 
-  hessianCov = cbind(steps, par.covariates.up$hessian)
+
   write.table(
     hessianCov,
     path_hessian_cov,
@@ -306,8 +312,11 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
   if(length(which(is.na(emv)==T))>0){
     emv.alpha = list()
     emv.alpha$hessian <- matrix(0,1,1)
+    hessianAlpha = cbind(steps, emv.alpha$hessian)
+  }else{
+    hessianAlpha = cbind(steps, emv.alpha$hessian)
   }
-  hessianAlpha = cbind(steps, emv.alpha$hessian)
+
   write.table(
     hessianAlpha,
     path_hessian_alpha,
@@ -326,7 +335,7 @@ MC = 1000
 cpus <- 4
 ncv  = 2
 ncx=3
-alphas = c(0.95)
+alphas = c(0.95,0.80,0.65,0.35)
 sfInit(parallel = TRUE, cpus = cpus)
 sfExportAll()
 sfLibrary(tidyr)
@@ -356,11 +365,13 @@ sfStop()
 erro = 10 ^ (-4)
 model = 1
 alphas = c(0.95,0.80,0.50, 0.65,0.35)
-alphas = c(0.65)
+alphas = c(0.80,0.95)
+idx = 1:1000
 tic <- tictoc::tic()
 for(alpha in alphas ){
-  alpha = 0.95
-  steps = 377
+  #alpha = 0.95
+  #steps = 377
+
   alpha.value <- switch (
     as.character(alpha),
     "0.35" = "alpha35",
@@ -369,6 +380,7 @@ for(alpha in alphas ){
     "0.8" = "alpha80",
     "0.95" = "alpha95"
   )
+  for(steps in idx){
   path.sample <- paste0("Data_simulation/Model_",
                         model,
                         "/simulations/",
@@ -422,15 +434,18 @@ for(alpha in alphas ){
     silent = T)
 
   if (class(par.cov.Gbase) == "try-error") {
-    start_aux_lambdas = betareg::betareg(
+    start_aux_lambdas = try(betareg::betareg(
       formula = formula,
       link = "loglog",
       link.phi = "log",
       data = data
-    )$coefficients$precision
-
-    start_aux <-
-      c(start_aux_betas, start_aux_lambdas)
+    )$coefficients$precision,silent = T)
+    if(class(start_aux_lambdas)=="try-error"){
+      start_aux = c(start_aux_betas,-2,-2)
+    }else{
+      start_aux <-
+        c(start_aux_betas, start_aux_lambdas)
+    }
 
     par.cov.Gbase <-
       try(optim(
@@ -494,7 +509,7 @@ for(alpha in alphas ){
     ),
     silent = T)
 
-  if(class(emv.alpha)=="try-error"){
+  if(class(emv.alpha)=="try-error"|emv.alpha$value==0){
     estimates.aux = list()
     estimates.aux$par = rep(NA,ncx+ncv+1)
   }else{
@@ -515,12 +530,16 @@ for(alpha in alphas ){
       break
     }
     #       # Step E-----
-    v <- V(
+    v <- try(V(
       theta = par.covariates.start,
       x = cov_a,
       w = cov_delta,
       y = y
-    )
+    ),silent = T)
+
+    if(class(v)=="try-error"){
+      v = NA
+    }
 
 
     derivate_numerator <- try(d_vn(N = length(y) + 1,
@@ -561,7 +580,7 @@ for(alpha in alphas ){
         x = cov_a,
         w = cov_delta,
         y = y,
-        Etil1 =  as.numeric(Esp.z),
+        Etil1 =  Esp.z,
         hessian = T
       ),
       silent = T)
@@ -585,7 +604,7 @@ for(alpha in alphas ){
     }
   }
 
-  if(class(par.covariates.up)!="try-error" & par.covariates.up$value ==0)
+  if((class(par.covariates.up)!="try-error" & par.covariates.up$value ==0))
   {
     emv <- rep(NA,ncx+ncv+1)
   }
@@ -623,12 +642,15 @@ for(alpha in alphas ){
     alpha.value,
     ".txt"
   )
-  if(length(which(is.na(emv)==T)>0)){
+  if(length(which(is.na(emv)==T))>0){
     par.covariates.up = list()
     par.covariates.up$hessian <- matrix(0,ncx+ncv,ncx+ncv)
+    hessianCov = cbind(steps, par.covariates.up$hessian)
+  }else{
+    hessianCov = cbind(steps, par.covariates.up$hessian)
   }
 
-  hessianCov = cbind(steps, par.covariates.up$hessian)
+
   write.table(
     hessianCov,
     path_hessian_cov,
@@ -646,11 +668,14 @@ for(alpha in alphas ){
     alpha.value,
     ".txt"
   )
-  if(length(which(is.na(emv)==T)>0)){
+  if(length(which(is.na(emv)==T))>0){
     emv.alpha = list()
     emv.alpha$hessian <- matrix(0,1,1)
+    hessianAlpha = cbind(steps, emv.alpha$hessian)
+  }else{
+    hessianAlpha = cbind(steps, emv.alpha$hessian)
   }
-  hessianAlpha = cbind(steps, emv.alpha$hessian)
+
   write.table(
     hessianAlpha,
     path_hessian_alpha,

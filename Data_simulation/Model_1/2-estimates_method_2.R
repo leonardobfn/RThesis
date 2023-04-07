@@ -422,8 +422,8 @@ alphas = c(0.95,0.80,0.50, 0.65,0.35)
 alphas = c(0.65)
 tic <- tictoc::tic()
 for(alpha in alphas ){
-  alpha = 0.35
-  #steps =  27
+  alpha = 0.50
+  steps =  754
 
     alpha.value <- switch (
       as.character(alpha),
@@ -435,7 +435,7 @@ for(alpha in alphas ){
     )
     idx = 1:1000
     for(steps in idx){
-      steps = 106
+
     path.sample <-
 
       paste0("Data_simulation/Model_",

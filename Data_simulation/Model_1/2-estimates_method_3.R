@@ -553,7 +553,7 @@ for(alpha in alphas ){
     }
 
   }
-
+  #0.3394728
   if(length(which(is.na(estimates.aux$par )==T))==0){
   emv = list()
   emv <- estimates.aux$par

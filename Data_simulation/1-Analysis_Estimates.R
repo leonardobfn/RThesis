@@ -64,8 +64,8 @@ par.estimates.complet_model_1 = par.estimates_model_1 %>%
     relative_bias = bias / par_real
   ) %>% data.frame()
 par.estimates.complet_model_1 %>% filter(V3 == "alpha")
-write.csv(par.estimates.complet,
-          "Data_simulation/estimates_values.csv")
+writexl::write_xlsx(par.estimates.complet_model_1,
+          "Data_simulation/estimates_values.xlsx")
 # Model 2------------
 estimates_model_2 = NULL
 methods <- c("Method_1", "Method_2", "Method_3")

@@ -5,7 +5,7 @@ require(dplyr)
 # dados2 = read.table("Data_simulation/Model_1/estimates/Method_2/hessian/teste/hessianCov_alpha35.txt")
 # dados3 = read.table("Data_simulation/Model_1/estimates/Method_2/hessian/teste/hessian_alpha35.txt")
 
-dados1 = read.table("Data_simulation/Model_1/estimates/Method_1/estimates/estimatesalpha35.txt")
+dados1 = read.table("Data_simulation/Model_1/estimates/Method_3/estimates/estimatesalpha35.txt")
 dados2 = read.table("Data_simulation/Model_1/estimates/Method_1/hessian/hessianCov_alpha35.txt")
 dados3 = read.table("Data_simulation/Model_1/estimates/Method_1/hessian/hessian_alpha35.txt")
 #65,95,80

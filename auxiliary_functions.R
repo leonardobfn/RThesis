@@ -59,7 +59,6 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
   at1 = a[1]
   bt1 = b[1]
   u1 = runif(1)
-  G = (1 - .8 ^ (1 / b[1])) ^ a[1]
   y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
   yt.y1[1] <-  y1
 
@@ -104,7 +103,7 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
     ),
     silent = T)
 
-    if (class(int.yt) == "try-error" & i == 2) {
+    if ((class(int.yt) == "try-error" & i == 2) | y1==1) {
       repeat {
         u1 = runif(1)
         y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
@@ -130,7 +129,7 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
       }
     }
 
-    if (class(int.yt) == "try-error" & i>2) {
+    if ((class(int.yt) == "try-error" & i>2)|int.yt$root==1) {
       repeat {
         u2 = runif(1, 0, 1)
         at1 = a[i - 2]
@@ -836,5 +835,5 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
   )
 }
 
-
+read.table("Data_simulation/Model_1/simulations/alpha35/data5.txt")
 

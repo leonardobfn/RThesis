@@ -96,11 +96,13 @@ a = exp(xbeta)
 
 
 library(snowfall)
+#source("auxiliary_functions.R")
 alphas = c(0.35,0.50, 0.65, 0.80, 0.95) # values real alpha
 model = 3
 n = 144 # length of series
 MC = 1000
-cpus <- 4
+cpus <- 10
+alphas = c(0.50, 0.65, 0.80, 0.95)
 sfInit(parallel = TRUE, cpus = cpus)
 sfExportAll()
 tic <- tictoc::tic()
@@ -120,3 +122,4 @@ for (alpha. in alphas) {
 toc <- tictoc::toc()
 sfStop()
 #940.35 sec elapsed
+read.table("Data_simulation/Model_3/simulations/alpha35/data3.txt")

@@ -1,13 +1,13 @@
 rm(list=ls())
 require(tidyr)
 require(dplyr)
-# dados1 = read.table("Data_simulation/Model_1/estimates/Method_2/estimates/teste/estimatesalpha35.txt")
-# dados2 = read.table("Data_simulation/Model_1/estimates/Method_2/hessian/teste/hessianCov_alpha35.txt")
-# dados3 = read.table("Data_simulation/Model_1/estimates/Method_2/hessian/teste/hessian_alpha35.txt")
+dados1 = read.table("Data_simulation/Model_3/estimates/Method_1/estimates/teste/estimatesalpha35.txt")
+dados2 = read.table("Data_simulation/Model_3/estimates/Method_1/hessian/teste/hessianCov_alpha35.txt")
+dados3 = read.table("Data_simulation/Model_3/estimates/Method_1/hessian/teste/hessian_alpha35.txt")
 
-dados1 = read.table("Data_simulation/Model_1/estimates/Method_3/estimates/estimatesalpha35.txt")
-dados2 = read.table("Data_simulation/Model_1/estimates/Method_1/hessian/hessianCov_alpha35.txt")
-dados3 = read.table("Data_simulation/Model_1/estimates/Method_1/hessian/hessian_alpha35.txt")
+dados1 = read.table("Data_simulation/Model_3/estimates/Method_1/estimates/estimatesalpha35.txt")
+dados2 = read.table("Data_simulation/Model_3/estimates/Method_1/hessian/hessianCov_alpha35.txt")
+dados3 = read.table("Data_simulation/Model_3/estimates/Method_1/hessian/hessian_alpha35.txt")
 #65,95,80
 
 # dados1 = read.table("Data_simulation/Model_1/estimates/Method_2/estimates/estimatesalpha95.txt")
@@ -17,7 +17,7 @@ dados3 = read.table("Data_simulation/Model_1/estimates/Method_1/hessian/hessian_
 # dados3 = read.table("Data_simulation/Model_1/estimates/Method_2/hessian/hessianCovLambda_alpha95.txt")
 #dados4 = read.table("Data_simulation/Model_1/estimates/Method_2/hessian/hessian_alpha95.txt")
 
-nrow(dados1)/6
+nrow(dados1)
 nrow(dados2)
 nrow(dados3)
 #nrow(dados3)
@@ -39,4 +39,5 @@ est = dados1 %>% group_by(V3) %>% summarise(m = median(V2,na.rm=T),
 
 est
 dados1 %>% slice(which(is.na(V2)==T)) %>% pull(V1) %>% unique() %>% length()
+read.table("Data_simulation/real_par_model_3.txt")
 

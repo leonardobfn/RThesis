@@ -364,16 +364,16 @@ sfStop()
 # estimate - for -------
 erro = 10 ^ (-4)
 model = 3
-alphas = c(0.95,0.80,0.50, 0.65,0.35)
+alphas = sort(c(0.95,0.80,0.50, 0.65,0.35))
 #alphas = c(0.80,0.95)
-idx = 1:1000
+#idx = 1:3
 tic <- tictoc::tic()
-for(alpha in alphas ){
-  #alpha = 0.95
-  #steps = 377
-
+for(alpha. in alphas ){
+  # alpha. = 0.65
+  # steps = 70
+  idx = 1:1000
   alpha.value <- switch (
-    as.character(alpha),
+    as.character(alpha.),
     "0.35" = "alpha35",
     "0.5" = "alpha50",
     "0.65" = "alpha65",
@@ -414,8 +414,13 @@ for(alpha in alphas ){
   par_names <- c(paste0(colnames(cov_a), "_a"),
                  paste0(colnames(cov_delta), "_delta"),
                  "alpha")
-  start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost-1, data = data))
 
+  start_aux_betas = try(coef(lm(-log(-log(RH)) ~ sent + cost-1, data = data)),
+                        silent = T)
+
+  if(class(start_aux_betas)=="try-error"){
+    start_aux_betas <- c(rep(-.1,ncx))
+  }
   start_aux <-
     c(start_aux_betas, -.1, -.1)
 
@@ -498,7 +503,7 @@ for(alpha in alphas ){
       par = alpha,
       fn = log.f.cond.alpha,
       control = list(fnscale = -1),
-      #method = "BFGS",
+      #method = "BFGS",s
       method = "L-BFGS-B",
       lower = c(0.1),
       upper = c(1),
@@ -510,12 +515,7 @@ for(alpha in alphas ){
     ),
     silent = T)
 
-  if(class(emv.alpha)!="try-error" & emv.alpha$value==0){
-    estimates.aux = list()
-    estimates.aux$par = rep(NA,ncx+ncv+1)
-  }
-
-  if(class(emv.alpha)=="try-error"){
+  if(class(emv.alpha) == "try-error"){
     estimates.aux = list()
     estimates.aux$par = rep(NA,ncx+ncv+1)
   }else{
@@ -690,8 +690,14 @@ for(alpha in alphas ){
     quote = T,
     append = T
   )
+  }
 }
-}
+
 toc <- tictoc::toc()
 
 
+l = list.files("Data_simulation/Model_3/simulations/alpha80/")
+for(i in 1:1000){
+  path = paste0("Data_simulation/Model_3/simulations/alpha80/",l[i])
+if(nrow(read.table(path))!=144)print(i)
+}

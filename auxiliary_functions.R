@@ -2,8 +2,8 @@
 #log.f.cond---------
 log.f.cond <- function(theta,y,x,w){
   #theta = c(par.cov.start.marginal, alpha.start)
-  Beta = theta[1:ncx]
-  lambda = theta[c((1+ncx):(ncx+ncv))]
+  # Beta = theta[1:ncx]
+  # lambda = theta[c((1+ncx):(ncx+ncv))]
 
   alpha = theta[-c((1):(ncx+ncv))]
   wlambda <- w %*% lambda
@@ -30,11 +30,11 @@ log.f.cond <- function(theta,y,x,w){
 }
 
 #snowfall.simulation--------
-
 snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
   #id=1
   # alpha = 0.5
   # alpha = 0.8
+  #nn = 144;alpha=0.35
 
   alpha.value <- switch (
     as.character(alpha),
@@ -58,9 +58,15 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
   at1 = a[1]
   bt1 = b[1]
-  u1 = runif(1)
-  y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
-  yt.y1[1] <-  y1
+  #u1 = runif(1)
+  repeat {
+    u1 = runif(1)
+    #G = (1 - .8 ^ (1 / b[1])) ^ a[1]
+    y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
+    yt.y1[1] <-  y1
+    if( format( y1 ) != 1 & format( y1 ) != 0)
+      break
+  }
 
   y.aux <- data.frame(y.sim = yt.y1[1],
                       t = 1,
@@ -77,6 +83,7 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
   )
 
   for (i in 2:nn) {
+    #i=96
     at1 = a[i - 1]
     bt1 = b[i - 1]
     at = a[i]
@@ -92,7 +99,7 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
     int.yt = try (uniroot(
       p.cond,
-      interval = c(0, 1),
+      interval = c(0,1),
       u = 1 - u2,
       y.t.1 = yt.y1[i - 1],
       at1 = at1,
@@ -103,16 +110,22 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
     ),
     silent = T)
 
-    if ((class(int.yt) == "try-error" & i == 2) | y1==1) {
-      repeat {
-        u1 = runif(1)
-        y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
-        yt.y1[1] <-  y1
+    if (class(int.yt) == "try-error" & i == 2) {
+      repeat{
+        repeat {
+          u1 = runif(1)
+          #G = (1 - .8 ^ (1 / b[1])) ^ a[1]
+          y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
+          yt.y1[1] <-  y1
+          if( format( y1 ) != 1 & format( y1 ) != 0)
+            break
+        }
+
         u2 = runif(1, 0, 1)
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0, 1),
+          interval = c(0,1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 1],
           at1 = at1,
@@ -128,9 +141,51 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
         }
       }
     }
+    #int.yt = list()
+    #int.yt$root = 0.000000e+00
+    if (class(int.yt) != "try-error" & i == 2 & (format(int.yt$root)==0|format(int.yt$root)==1)) {
+      test = "try-error"
+      while(test == "try-error") {
+        repeat {
+          u1 = runif(1)
+          #G = (1 - .8 ^ (1 / b[1])) ^ a[1]
+          y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
+          yt.y1[1] <-  y1
+          if( format( y1 ) != 1 & format( y1 ) != 0)
+            break
+        }
 
-    if ((class(int.yt) == "try-error" & i>2)|int.yt$root==1) {
+        u2 = runif(1, 0, 1)
+
+        int.yt = try (uniroot(
+          p.cond,
+          interval = c(0,1),
+          u = 1 - u2,
+          y.t.1 = yt.y1[i - 1],
+          at1 = at1,
+          at = at,
+          bt1 = bt1,
+          bt = bt,
+          alpha = alpha
+        ),
+        silent = T)
+        test = class( int.yt )
+        if(test!="try-error" ){
+          if(format(int.yt$root)!=0 & format(int.yt$root)!=1)
+            break else{
+              test = "try-error"
+            }
+        }
+        # if (class(int.yt) != "try-error") {
+        #   break
+        # }
+      }
+    }
+
+    if (class(int.yt) == "try-error" & i>2) {
+
       repeat {
+
         u2 = runif(1, 0, 1)
         at1 = a[i - 2]
         bt1 = b[i - 2]
@@ -139,7 +194,7 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0, 1),
+          interval = c(0,1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 2],
           at1 = at1,
@@ -149,7 +204,10 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
           alpha = alpha
         ),
         silent = T)
-
+        if(class(int.yt)=="try-error"){
+          int.yt = list()
+          int.yt$root <- NA
+        }
         yt.y1[i - 1] <- int.yt$root
 
         u2 = runif(1, 0, 1)
@@ -160,7 +218,7 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0, 1),
+          interval = c(0,1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 1],
           at1 = at1,
@@ -174,6 +232,71 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
         if (class(int.yt) != "try-error") {
           break
         }
+
+      }
+    }
+
+    if (class(int.yt) != "try-error" & i>2 & (format(int.yt$root)==0|format(int.yt$root)==1)) {
+      test = "try-error"
+      while(test == "try-error") {
+
+        u2 = runif(1, 0, 1)
+        at1 = a[i - 2]
+        bt1 = b[i - 2]
+        at = a[i - 1]
+        bt = b[i - 1]
+
+        int.yt = try (uniroot(
+          p.cond,
+          interval = c(0,1),
+          u = 1 - u2,
+          y.t.1 = yt.y1[i - 2],
+          at1 = at1,
+          at = at,
+          bt1 = bt1,
+          bt = bt,
+          alpha = alpha
+        ),
+        silent = T)
+
+        if(class(int.yt)=="try-error"){
+          int.yt = list()
+          int.yt$root <- NA
+        }
+
+        yt.y1[i - 1] <- int.yt$root
+
+        u2 = runif(1, 0, 1)
+        at1 = a[i - 1]
+        bt1 = b[i - 1]
+        at = a[i]
+        bt = b[i]
+
+        int.yt = try (uniroot(
+          p.cond,
+          interval = c(0,1),
+          u = 1 - u2,
+          y.t.1 = yt.y1[i - 1],
+          at1 = at1,
+          at = at,
+          bt1 = bt1,
+          bt = bt,
+          alpha = alpha
+        ),
+        silent = T)
+
+        test = class( int.yt )
+
+        if(test!="try-error" ){
+          if(format(int.yt$root)!=0 & format(int.yt$root)!=1)
+            break else{
+              test = "try-error"
+            }
+        }
+
+        # if (class(int.yt) != "try-error") {
+        #   break
+        # }
 
       }
     }
@@ -194,8 +317,10 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
       col.names = F
     )
   }
-
 }
+#não mexxer
+
+
 
 
 ## p. cond ----------
@@ -332,6 +457,8 @@ log.f.cond.lambda.alpha <- function(theta,beta,y,x,w){
 
 log.f.cond.alpha <- function(alpha,theta,y,x,w){
   #theta = c(par.cov.start.marginal, alpha.start)
+  #Beta = beta;lambda = lambda
+  #x = cov_a;w = cov_delta
   Beta = theta[1:ncx]
   lambda = theta[c((1+ncx):(ncx+ncv))]
 
@@ -354,7 +481,9 @@ log.f.cond.alpha <- function(alpha,theta,y,x,w){
 
   }
   log.f.cond. <- log.f.cond.[is.finite(log.f.cond.)==T]
-  return( log.f1  + sum(log.f.cond.))
+  #return(  log.f1  + sum(  log.f.cond.)  )
+  l = c(log.f1,sum(  log.f.cond. ))
+  return(  sum(l[is.finite(l)==T])  )
 
 }
 
@@ -372,14 +501,15 @@ log.kumar.gbase = function(theta, x, w, y) {
   a = exp(xbeta)
 
 
-
-  l = sum(extraDistr::dkumar(
+  l = extraDistr::dkumar(
     x = y,
     a = a,
     b = b,
     log = T
-  ),na.rm = T)
-  return(l)
+  )
+
+  l = l [is.finite(l)==T]
+  return(sum(l))
 }
 
 ##log_like_margina_alpha.ind-------

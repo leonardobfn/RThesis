@@ -389,7 +389,8 @@ log.f.cond.beta <- function(theta,alpha,lambda,y,x,w){
 
   }
   log.f.cond. <- log.f.cond.[is.finite(log.f.cond.)==T]
-  return( log.f1  + sum(log.f.cond.))
+  l = c(log.f1,sum(log.f.cond.))
+  return( sum(l[is.finite(l)==T]))
 
 }
 
@@ -419,15 +420,18 @@ log.f.cond.lambda <- function(theta,alpha,beta,y,x,w){
 
   }
   log.f.cond. <- log.f.cond.[is.finite(log.f.cond.)==T]
-  return( log.f1  + sum(log.f.cond.))
+
+  log.f.cond. <- log.f.cond.[is.finite(log.f.cond.)==T]
+  l = c(log.f1,sum(log.f.cond.))
+  return( sum(l[is.finite(l)==T]))
 
 }
 ##log.f.cond.lambda.alpha  ----------
 
 log.f.cond.lambda.alpha <- function(theta,beta,y,x,w){
   #theta = c(par.cov.start.marginal, alpha.start)
-  Beta = beta
-  lambda = theta[c(1:ncv)]
+  #Beta = beta
+  #lambda = theta[c(1:ncv)]
   alpha = theta[-c(1:ncv)]
   wlambda <- w %*% lambda
   delta <- exp(wlambda)

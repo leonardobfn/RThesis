@@ -419,7 +419,7 @@ log.f.cond.lambda <- function(theta,alpha,beta,y,x,w){
       (alpha-2)*log(LAMBDA[t-1]+LAMBDA[t])+log(alpha*( LAMBDA[t-1]+LAMBDA[t]  )^alpha+(1-alpha))
 
   }
-  log.f.cond. <- log.f.cond.[is.finite(log.f.cond.)==T]
+
 
   log.f.cond. <- log.f.cond.[is.finite(log.f.cond.)==T]
   l = c(log.f1,sum(log.f.cond.))

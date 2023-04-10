@@ -36,7 +36,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
   covi = read.table("Data_simulation/covariates.txt")
   covi$semester <- as.factor(covi$semester)
   data = data.frame(covi, RH = s$V1)
-  formula <- RH ~ sent + cost | semester
+  formula <- RH ~ sent + cost-1|semester
   mf <- model.frame(Formula::Formula(formula), data = data)
   y <- model.response(mf)
   cov_a <-
@@ -54,7 +54,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
   par_names <- c(paste0(colnames(cov_a), "_a"),
                  paste0(colnames(cov_delta), "_delta"),
                  "alpha")
-  start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost, data = data))
+  start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost-1, data = data))
 
   start_aux <-
     c(start_aux_betas, -.1, -.1)
@@ -329,7 +329,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
 
 library(snowfall)
 alphas = c(0.95,0.80,0.65,0.50,0.35) # values real alpha
-model = 1
+model = 2
 n = 144 # length of series
 MC = 1000
 cpus <- 4
@@ -363,17 +363,17 @@ sfStop()
 #1048.89 sec eapsed 50 e 35
 # estimate - for -------
 erro = 10 ^ (-4)
-model = 1
-alphas = c(0.95,0.80,0.50, 0.65,0.35)
-alphas = c(0.80,0.95)
-idx = 1:1000
+model = 2
+alphas = sort(c(0.95,0.80,0.50, 0.65,0.35))
+#alphas = c(0.80,0.95)
+#idx = 1:3
 tic <- tictoc::tic()
-for(alpha in alphas ){
-  #alpha = 0.95
-  #steps = 377
-
+for(alpha. in alphas ){
+  # alpha. = 0.65
+  # steps = 70
+  idx = 1:1000
   alpha.value <- switch (
-    as.character(alpha),
+    as.character(alpha.),
     "0.35" = "alpha35",
     "0.5" = "alpha50",
     "0.65" = "alpha65",
@@ -395,7 +395,8 @@ for(alpha in alphas ){
   covi = read.table("Data_simulation/covariates.txt")
   covi$semester <- as.factor(covi$semester)
   data = data.frame(covi, RH = s$V1)
-  formula <- RH ~ sent + cost | semester
+  #data$RH[data$RH==1] <- 0.99
+  formula <- RH ~ sent + cost|semester-1
   mf <- model.frame(Formula::Formula(formula), data = data)
   y <- model.response(mf)
   cov_a <-
@@ -413,10 +414,15 @@ for(alpha in alphas ){
   par_names <- c(paste0(colnames(cov_a), "_a"),
                  paste0(colnames(cov_delta), "_delta"),
                  "alpha")
-  start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost, data = data))
 
+  start_aux_betas = try(coef(lm(-log(-log(RH)) ~ sent + cost, data = data)),
+                        silent = T)
+
+  if(class(start_aux_betas)=="try-error"){
+    start_aux_betas <- c(rep(-.1,ncx))
+  }
   start_aux <-
-    c(start_aux_betas, -.1, -.1)
+    c(start_aux_betas,rep(-.1,ncv))
 
   par.cov.Gbase <-
     try(optim(
@@ -497,7 +503,7 @@ for(alpha in alphas ){
       par = alpha,
       fn = log.f.cond.alpha,
       control = list(fnscale = -1),
-      #method = "BFGS",
+      #method = "BFGS",s
       method = "L-BFGS-B",
       lower = c(0.1),
       upper = c(1),
@@ -509,7 +515,7 @@ for(alpha in alphas ){
     ),
     silent = T)
 
-  if(class(emv.alpha)=="try-error"|emv.alpha$value==0){
+  if(class(emv.alpha) == "try-error"){
     estimates.aux = list()
     estimates.aux$par = rep(NA,ncx+ncv+1)
   }else{
@@ -521,6 +527,7 @@ for(alpha in alphas ){
   alpha.up <- estimates.aux$par[-c(1:(ncx + ncv))]
   par.covariates.start <- estimates.aux$par[c(1:(ncx + ncv))]
   #print(estimates.aux)
+  iter = 0
   repeat {
 
     if(length(which(is.na(estimates.aux$par)==T))>0){
@@ -595,12 +602,19 @@ for(alpha in alphas ){
     crit <-
       sum(((par.covariates.up$par - par.covariates.start) / par.covariates.start
       ) ^ 2)
+    print(crit)
     if (crit < erro) {
       emv <- c(par.covariates.up$par, alpha.up)
       break
     }
     else{
       par.covariates.start <- par.covariates.up$par
+      iter = iter + 1
+      if(iter > 500){
+        emv <- c(par.covariates.up$par, alpha.up)
+        break
+      }
+
     }
   }
 
@@ -684,8 +698,14 @@ for(alpha in alphas ){
     quote = T,
     append = T
   )
+  }
 }
-}
+
 toc <- tictoc::toc()
 
 
+l = list.files("Data_simulation/Model_3/simulations/alpha80/")
+for(i in 1:1000){
+  path = paste0("Data_simulation/Model_3/simulations/alpha80/",l[i])
+if(nrow(read.table(path))!=144)print(i)
+}

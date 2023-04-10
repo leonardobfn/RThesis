@@ -39,7 +39,7 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
     covi = read.table("Data_simulation/covariates.txt")
     covi$semester <- as.factor(covi$semester)
     data = data.frame(covi, RH = s$V1)
-    formula <- RH ~ sent + cost | semester
+    formula <- RH ~ sent + cost -1 | semester
     mf <- model.frame(Formula::Formula(formula), data = data)
     y <- model.response(mf)
     cov_a <-
@@ -57,7 +57,7 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
     par_names <- c(paste0(colnames(cov_a), "_a"),
                    paste0(colnames(cov_delta), "_delta"),
                    "alpha")
-    start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost, data = data))
+    start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost-1, data = data))
     start_aux <-
       c(start_aux_betas, -.1, -.1)
 
@@ -373,7 +373,7 @@ snowfall.estimates_method_2 = function(steps, model, alpha,erro = 10 ^ (-4)){
 
 library(snowfall)
 alphas = c(0.95,0.80,0.65,0.50,0.35) # values real alpha
-model = 1
+model = 2
 n = 144 # length of series
 MC = 1000
 cpus <- 4
@@ -417,16 +417,16 @@ require(extraDistr)
 source("auxiliary_functions.R")
 compiler::enableJIT(3)
 erro = 10 ^ (-4)
-model = 1
-alphas = c(0.95,0.80,0.50, 0.65,0.35)
-alphas = c(0.65)
+model = 2
+alphas = sort(c(0.95,0.65,0.80,0.35,0.50))
+#alphas = c(0.65)
 tic <- tictoc::tic()
-for(alpha in alphas ){
-  alpha = 0.50
-  steps =  754
+for(alpha. in alphas ){
+  alpha. = 0.65
+  steps =  1000
 
     alpha.value <- switch (
-      as.character(alpha),
+      as.character(alpha.),
       "0.35" = "alpha35",
       "0.5" = "alpha50",
       "0.65" = "alpha65",
@@ -435,7 +435,7 @@ for(alpha in alphas ){
     )
     idx = 1:1000
     for(steps in idx){
-
+      #steps = 1
     path.sample <-
 
       paste0("Data_simulation/Model_",
@@ -452,7 +452,7 @@ for(alpha in alphas ){
     covi = read.table("Data_simulation/covariates.txt")
     covi$semester <- as.factor(covi$semester)
     data = data.frame(covi, RH = s$V1)
-    formula <- RH ~ sent + cost | semester
+    formula <- RH ~ sent + cost  | semester-1
     mf <- model.frame(Formula::Formula(formula), data = data)
     y <- model.response(mf)
     cov_a <-
@@ -470,9 +470,15 @@ for(alpha in alphas ){
     par_names <- c(paste0(colnames(cov_a), "_a"),
                    paste0(colnames(cov_delta), "_delta"),
                    "alpha")
-    start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost, data = data))
+
+    start_aux_betas = try( coef(lm(-log(-log(RH)) ~ sent + cost , data = data)),
+                           silent = T)
+    if(class(start_aux_betas)=="try-error"){
+      start_aux_betas = c(rep(-.1,ncx))
+    }
+
     start_aux <-
-      c(start_aux_betas, -.1, -.1)
+      c(start_aux_betas, rep(-.1,ncv))
 
     par.cov.Gbase <-
       try(optim(
@@ -537,9 +543,16 @@ for(alpha in alphas ){
     #   ),
     #   silent = T)
     #theta.start = c(start_aux,.5)
-    theta.start = c(par.cov.Gbase$par, .5)
-
-
+    # if(par.cov.Gbase$value==0) {
+    #   theta.start = c(start_aux,0.90)
+    # } else{
+    #   theta.start = c(par.cov.Gbase$par, 0.50)
+    # }
+    if (par.cov.Gbase$value == 0) {
+      theta.start = c(start_aux, 0.90)
+    } else{
+      theta.start = c(par.cov.Gbase$par, 0.50)
+    }
     repeat {
 
       beta <- theta.start[c(1:ncx)]
@@ -628,6 +641,7 @@ for(alpha in alphas ){
     alpha.up <- estimates.aux$par[-c(1:(ncx + ncv))]
     par.covariates.start <- estimates.aux$par[c(1:(ncx + ncv))]
     #print(estimates.aux)
+    iter = 0
     repeat {
 
       if(length(which(is.na(estimates.aux$par)==T))>0){
@@ -697,12 +711,18 @@ for(alpha in alphas ){
       crit <-
         sum(((par.covariates.up$par - par.covariates.start) / par.covariates.start
         ) ^ 2)
+      print(crit)
       if (crit < erro) {
         emv <- c(par.covariates.up$par, alpha.up)
         break
       }
       else{
         par.covariates.start <- par.covariates.up$par
+        iter = iter + 1
+        if(iter > 500){
+          emv <- c(par.covariates.up$par, alpha.up)
+          break
+        }
       }
     }
 
@@ -786,4 +806,4 @@ for(alpha in alphas ){
 }
 toc <- tictoc::toc()
 
-
+#revisar o método 1

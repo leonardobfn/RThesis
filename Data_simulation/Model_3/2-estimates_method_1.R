@@ -54,7 +54,7 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
   par_names <- c(paste0(colnames(cov_a), "_a"),
                  paste0(colnames(cov_delta), "_delta"),
                  "alpha")
-  start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost, data = data))
+  start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost-1, data = data))
 
   start_aux <-
     c(start_aux_betas, -.1, -.1)
@@ -527,6 +527,7 @@ for(alpha. in alphas ){
   alpha.up <- estimates.aux$par[-c(1:(ncx + ncv))]
   par.covariates.start <- estimates.aux$par[c(1:(ncx + ncv))]
   #print(estimates.aux)
+  iter = 0
   repeat {
 
     if(length(which(is.na(estimates.aux$par)==T))>0){
@@ -601,12 +602,19 @@ for(alpha. in alphas ){
     crit <-
       sum(((par.covariates.up$par - par.covariates.start) / par.covariates.start
       ) ^ 2)
+    print(crit)
     if (crit < erro) {
       emv <- c(par.covariates.up$par, alpha.up)
       break
     }
     else{
       par.covariates.start <- par.covariates.up$par
+      iter = iter + 1
+      if(iter > 500){
+        emv <- c(par.covariates.up$par, alpha.up)
+        break
+      }
+
     }
   }
 

@@ -12,10 +12,10 @@ dados3 = read.table("Data_simulation/Model_2/estimates/Method_3/hessian/hessian_
 
 # dados1 = read.table("Data_simulation/Model_1/estimates/Method_2/estimates/estimatesalpha95.txt")
 # dados2 = read.table("Data_simulation/Model_1/estimates/Method_2/hessian/hessianCov_alpha95.txt")
-dados1 = read.table("Data_simulation/Model_2/estimates/Method_3/estimates/estimatesalpha95.txt")
-dados2 = read.table("Data_simulation/Model_2/estimates/Method_3/hessian/hessianCovbeta_alpha95.txt")
-dados3 = read.table("Data_simulation/Model_2/estimates/Method_3/hessian/hessianCovLambda_alpha95.txt")
-dados4 = read.table("Data_simulation/Model_2/estimates/Method_3/hessian/hessian_alpha95.txt")
+dados1 = read.table("Data_simulation/Model_3/estimates/Method_3/estimates/estimatesalpha80.txt")
+dados2 = read.table("Data_simulation/Model_3/estimates/Method_3/hessian/hessianCovbeta_alpha95.txt")
+dados3 = read.table("Data_simulation/Model_3/estimates/Method_3/hessian/hessianCovLambda_alpha95.txt")
+dados4 = read.table("Data_simulation/Model_3/estimates/Method_3/hessian/hessian_alpha95.txt")
 
 nrow(dados1)
 nrow(dados2)

@@ -27,8 +27,15 @@ fig_series = y %>%
   geom_line(aes(t, y)) +
   facet_grid(V3~Model  ,labeller = label_bquote(alpha == .(V3)  )) +
   theme_bw()
-fig_series
+#fig_series
 
+path1 = paste0("Data_simulation/Figures/series",".pdf")
+path1 = paste0("Data_simulation/Figures/series",".eps")
+#path2 = paste0()
+#pdf(path1)
+cairo_ps(path1)
+print(fig_series)
+dev.off()
 #------------ ACF series------
 
 ic_alpha= function(alpha, acf_res){
@@ -48,5 +55,9 @@ fig_acf = acff %>%
   geom_hline(aes(yintercept = -lim1), linetype = 2, color = 'blue')+
   facet_grid(V3~Model  ,labeller = label_bquote(alpha == .(V3)  )) +
   theme_bw()
-fig_acf
-
+path1 = paste0("Data_simulation/Figures/series",".eps")
+#path2 = paste0()
+#pdf(path1)
+cairo_ps(path1)
+print(fig_acf)
+dev.off()

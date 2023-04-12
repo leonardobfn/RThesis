@@ -126,8 +126,9 @@ par.estimates_model_2 = estimates_model_2 %>%
 
 par.estimates_model_2 %>% filter(Parameter == "alpha")
 
-write.csv(par.estimates_model_1,
+write.csv(par.estimates_model_2,
           "Data_simulation/estimates_values_model_2.csv")
+read.csv("Data_simulation/estimates_values_model_2.csv")
 # writexl::write_xlsx(par.estimates_model_2,
 #                     "Data_simulation/estimates_values_model_2.xlsx")
 
@@ -187,7 +188,8 @@ par.estimates_model_3 = estimates_model_3 %>%
   arrange(Method)
 
 par.estimates_model_3 %>% filter(Parameter == "alpha")
-write.csv(par.estimates_model_1,
+write.csv(par.estimates_model_3,
           "Data_simulation/estimates_values_model_3.csv")
+read.csv("Data_simulation/estimates_values_model_3.csv")
 # writexl::write_xlsx(par.estimates_model_2,
 #                     "Data_simulation/estimates_values_model_3.xlsx")

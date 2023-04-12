@@ -7,6 +7,13 @@ require(dplyr)
 require(extraDistr)
 compiler::enableJIT(3)
 alphas.plot = c("0.35","0.65","0.95")
+sc = .80
+width=7*sc
+height=7*sc
+# width=NULL
+# height=NULL
+
+theme.all = theme_bw()+theme(axis.text.x = element_text(angle=90))
 # Model 1------------
 estimates_model_1 = NULL
 methods <- c("Method_1", "Method_2", "Method_3")
@@ -56,10 +63,10 @@ for(i in 1:length(alphas.plot) ){
                labeller = label_parsed) +
     xlab("Method")+
     ylab("Estimates")+
-    theme_bw()
+    theme.all
 path1 = paste0("Data_simulation/Figures/Model_1_",alphas.plot[i],".pdf")
 #path2 = paste0()
-pdf(path1)
+pdf(path1,width = width,height = height)
 #postscript(path)
 print(fig_box_plot)
 dev.off()
@@ -113,10 +120,10 @@ for(i in 1:length(alphas.plot) ){
                labeller = label_parsed) +
     xlab("Method")+
     ylab("Estimates")+
-    theme_bw()
+    theme.all
   path1 = paste0("Data_simulation/Figures/Model_2_",alphas.plot[i],".pdf")
   #path2 = paste0()
-  pdf(path1)
+  pdf(path1,width = width,height = height)
   #postscript(path)
   print(fig_box_plot)
   dev.off()
@@ -172,12 +179,12 @@ estimates_model_3 = estimates_model_3 %>% rename(Parameter = V3)
 for(i in 1:length(alphas.plot) ){
   fig_box_plot = estimates_model_3 %>%
     group_by(Method,alpha,Parameter) %>%
-    summarise(iqr = IQR(V2,na.rm = T),
-              q25 = quantile(V2,0.25,na.rm = T),
-              q75 = quantile(V2,0.75,na.rm = T),
-              l = q25-1.5*iqr,
-              up =q75+1.5*iqr ,
-              V2 = V2[V2<up & V2>l]) %>%
+    # summarise(iqr = IQR(V2,na.rm = T),
+    #           q25 = quantile(V2,0.25,na.rm = T),
+    #           q75 = quantile(V2,0.75,na.rm = T),
+    #           l = q25-1.5*iqr,
+    #           up =q75+1.5*iqr ,
+    #           V2 = V2[V2<up & V2>l]) %>%
     filter(alpha == alphas.plot[i]) %>%
     #ggplot(aes(Method,V2)) +
     ggplot()+
@@ -188,10 +195,10 @@ for(i in 1:length(alphas.plot) ){
                labeller = label_parsed) +
     xlab("Method")+
     ylab("Estimates")+
-    theme_bw()
+    theme.all
   path1 = paste0("Data_simulation/Figures/Model_3_",alphas.plot[i],".pdf")
   #path2 = paste0()
-  pdf(path1)
+  pdf(path1,width = width,height = height)
   #postscript(path)
   print(fig_box_plot)
   dev.off()

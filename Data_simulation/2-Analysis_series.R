@@ -3,6 +3,9 @@ require(tidyverse)
 require(dplyr)
 alpha.values = c("alpha35", "alpha65", "alpha95")
 models <- c("Model_1", "Model_2", "Model_3")
+sc = .80
+width=7*sc
+height=7*sc
 y = NULL
 for (i in 1:length(models)) {
   for (j in 1:length(alpha.values)) {
@@ -30,10 +33,10 @@ fig_series = y %>%
 #fig_series
 
 path1 = paste0("Data_simulation/Figures/series",".pdf")
-path1 = paste0("Data_simulation/Figures/series",".eps")
+#path1 = paste0("Data_simulation/Figures/series",".eps")
 #path2 = paste0()
-#pdf(path1)
-cairo_ps(path1)
+pdf(path1,width = width,height = height,title = "y")
+#cairo_ps(path1)
 print(fig_series)
 dev.off()
 #------------ ACF series------
@@ -55,9 +58,10 @@ fig_acf = acff %>%
   geom_hline(aes(yintercept = -lim1), linetype = 2, color = 'blue')+
   facet_grid(V3~Model  ,labeller = label_bquote(alpha == .(V3)  )) +
   theme_bw()
-path1 = paste0("Data_simulation/Figures/series",".eps")
+#path1 = paste0("Data_simulation/Figures/series",".eps")
+path1 = paste0("Data_simulation/Figures/acf",".pdf")
 #path2 = paste0()
-#pdf(path1)
-cairo_ps(path1)
+pdf(path1,width = width,height = height,title = "acf")
+#cairo_ps(path1)
 print(fig_acf)
 dev.off()

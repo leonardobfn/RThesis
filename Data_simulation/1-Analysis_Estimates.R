@@ -3,6 +3,7 @@ rm(list = ls())
 require(tidyr)
 require(dplyr)
 require(extraDistr)
+ROUND = 5
 compiler::enableJIT(3)
 
 # Model 1------------
@@ -45,11 +46,12 @@ par.estimates_model_1 = estimates_model_1 %>%
   mutate(par_real = seq.par) %>%
   group_by(Method, alpha, Parameter) %>%
   summarise(
-    par_real =  median(par_real),
-    median = median(V2, na.rm = T),
+    Par_real =  round(median(par_real),ROUND),
+    Mean = round(mean(V2, na.rm = T),ROUND),
+    Median = round(median(V2, na.rm = T),ROUND),
     #sd_ = sd(V2, na.rm = T),
-    MPE = mean((V2-par_real)/par_real,na.rm=T),
-    relative_bias = ((median-par_real)/par_real)
+    MSE = round(mean((V2-Par_real)^2,na.rm=T),ROUND),
+    relative_bias = round(((Median-Par_real)/Par_real),ROUND)
     #inter.lower = quantile(V2, c((1 - conf) / 2), na.rm = T),
     #inter.upper = quantile(V2, c(conf + (1 - conf) / 2), na.rm =
     #                         T)
@@ -108,11 +110,12 @@ par.estimates_model_2 = estimates_model_2 %>%
   mutate(par_real = seq.par) %>%
   group_by(Method, alpha, Parameter) %>%
   summarise(
-    par_real =  median(par_real),
-    median = median(V2, na.rm = T),
+    Par_real =  round(median(par_real),ROUND),
+    Mean = round(mean(V2, na.rm = T),ROUND),
+    Median = round(median(V2, na.rm = T),ROUND),
     #sd_ = sd(V2, na.rm = T),
-    MPE = mean((V2-par_real)/par_real,na.rm=T),
-    relative_bias = ((median-par_real)/par_real)
+    MSE = round(mean((V2-Par_real)^2,na.rm=T),ROUND),
+    relative_bias = round(((Median-Par_real)/Par_real),ROUND)
     #inter.lower = quantile(V2, c((1 - conf) / 2), na.rm = T),
     #inter.upper = quantile(V2, c(conf + (1 - conf) / 2), na.rm =
     #                         T)
@@ -169,11 +172,12 @@ par.estimates_model_3 = estimates_model_3 %>%
   mutate(par_real = seq.par) %>%
   group_by(Method, alpha, Parameter) %>%
   summarise(
-    par_real =  median(par_real),
-    median = median(V2, na.rm = T),
+    Par_real =  round(median(par_real),ROUND),
+    Mean = round(mean(V2, na.rm = T),ROUND),
+    Median = round(median(V2, na.rm = T),ROUND),
     #sd_ = sd(V2, na.rm = T),
-    MPE = mean((V2-par_real)/par_real,na.rm=T),
-    relative_bias = ((median-par_real)/par_real)
+    MSE = round(mean((V2-Par_real)^2,na.rm=T),ROUND),
+    relative_bias = round(((Median-Par_real)/Par_real),ROUND)
     #inter.lower = quantile(V2, c((1 - conf) / 2), na.rm = T),
     #inter.upper = quantile(V2, c(conf + (1 - conf) / 2), na.rm =
     #                         T)

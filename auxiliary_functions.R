@@ -1,6 +1,6 @@
 # Funções-----------
 #log.f.cond---------
-log.f.cond <- function(theta,y,x,w){
+log.f.cond <- function(theta,y,x,w,ncx,ncv){
   #theta = c(par.cov.start.marginal, alpha.start)
   # Beta = theta[1:ncx]
   # lambda = theta[c((1+ncx):(ncx+ncv))]
@@ -365,7 +365,7 @@ int = function(l, up, ...) {
 }
 
 ##log.f.cond.beta ----------
-log.f.cond.beta <- function(theta,alpha,lambda,y,x,w){
+log.f.cond.beta <- function(theta,alpha,lambda,y,x,w,ncx,ncv){
   #theta = c(par.cov.start.marginal, alpha.start)
   Beta = theta
   lambda = lambda #theta[c((1+ncx):(ncx+ncv))]
@@ -395,7 +395,7 @@ log.f.cond.beta <- function(theta,alpha,lambda,y,x,w){
 }
 
 ##log.f.cond.lambda ----------
-log.f.cond.lambda <- function(theta,alpha,beta,y,x,w){
+log.f.cond.lambda <- function(theta,alpha,beta,y,x,w,ncx,ncv){
   #theta = c(par.cov.start.marginal, alpha.start)
   Beta = beta
   lambda = theta
@@ -428,7 +428,7 @@ log.f.cond.lambda <- function(theta,alpha,beta,y,x,w){
 }
 ##log.f.cond.lambda.alpha  ----------
 
-log.f.cond.lambda.alpha <- function(theta,beta,y,x,w){
+log.f.cond.lambda.alpha <- function(theta,beta,y,x,w,ncx,ncv){
   #theta = c(par.cov.start.marginal, alpha.start)
   #Beta = beta
   #lambda = theta[c(1:ncv)]
@@ -459,7 +459,7 @@ log.f.cond.lambda.alpha <- function(theta,beta,y,x,w){
 
 ##log.f.cond.alpha ----------
 
-log.f.cond.alpha <- function(alpha,theta,y,x,w){
+log.f.cond.alpha <- function(alpha,theta,y,x,w,ncx,ncv){
   #theta = c(par.cov.start.marginal, alpha.start)
   #Beta = beta;lambda = lambda
   #x = cov_a;w = cov_delta
@@ -493,7 +493,7 @@ log.f.cond.alpha <- function(alpha,theta,y,x,w){
 
 ##log_like_gbase----
 
-log.kumar.gbase = function(theta, x, w, y) {
+log.kumar.gbase = function(theta, x, w, y,ncx,ncv) {
   #theta = par.covariates.start;x=cov_a;w=cov_delta;alpha=.5
 
   Beta = theta[1:ncx]
@@ -561,7 +561,7 @@ log.like.marginal.ind = function(theta, x, w, y) {
 
 ## log_like_conditional----
 
-log.like_conditionl_covariates_EM = function(theta, y, x, w, Etil1) {
+log.like_conditionl_covariates_EM = function(theta, y, x, w, Etil1,ncx,ncv) {
   # x: betas covariates
   # w: lambdas covariates
   Beta = theta[1:ncx]
@@ -585,7 +585,7 @@ log.like_conditionl_covariates_EM = function(theta, y, x, w, Etil1) {
 
 ## v function-----------
 
-V = function(theta, x, w, y) {
+V = function(theta, x, w, y,ncx,ncv) {
   #ok
   # x: betas covariates
   # w: lambdas covariates
@@ -968,6 +968,4 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     append = T
   )
 }
-
-read.table("Data_simulation/Model_1/simulations/alpha35/data5.txt")
 

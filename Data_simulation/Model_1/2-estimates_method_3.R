@@ -5,24 +5,20 @@ rm(list = ls())
 # require(tidyr)
 # require(dplyr)
 # require(extraDistr)
- source("auxiliary_functions.R")
+source("auxiliary_functions.R")
 #compiler::enableJIT(3) #
 
 
-snowfall.estimates_Method_3 = function(steps,model,alpha,erro=10^(-4)) {
-  model=1
-   steps = 998
-    alpha = 0.95
-   print(MC)
+snowfall.estimates_Method_3 = function(steps,
+                                       model,
+                                       alpha.value,
+                                       erro=10^(-4),
+                                       formula  ) {
+  # model=1
+  #  steps = 116
+  #  alpha.value = "alpha95"
+   #print(MC)
 
-  alpha.value <- switch (
-    as.character(alpha),
-    "0.35" = "alpha35",
-    "0.5" = "alpha50",
-    "0.65" = "alpha65",
-    "0.8" = "alpha80",
-    "0.95" = "alpha95"
-  )
   path.sample <- paste0(
     "Data_simulation/Model_",
     model,
@@ -38,7 +34,6 @@ snowfall.estimates_Method_3 = function(steps,model,alpha,erro=10^(-4)) {
   covi = read.table("Data_simulation/covariates.txt")
   covi$semester <- as.factor(covi$semester)
   data = data.frame(covi, RH = s$V1)
-  formula <- RH ~ sent + cost | semester
   mf <- model.frame(Formula::Formula(formula), data = data)
   y <- model.response(mf)
   cov_a <-
@@ -60,33 +55,33 @@ snowfall.estimates_Method_3 = function(steps,model,alpha,erro=10^(-4)) {
 
   start_aux_betas = try(coef(lm(-log(-log(RH)) ~ sent + cost, data = data)))
 
-  if (class(start_aux_betas) != "try-error") {
-    par.cov.Gbase <-
-      try(optim(
-        par =  c(start_aux_betas, rep(-.1, ncv)),
-        fn = log.kumar.gbase,
-        control = list(fnscale = -1),
-        method = "BFGS",
-        # method = "L-BFGS-B",
-        # lower = c(rep(-Inf,6),0.25),
-        # upper = c(rep(Inf,6),0.95),
-        x = cov_a,
-        w = cov_delta,
-        y = y
-      ),
-      silent = T)
+  # if (class(start_aux_betas) != "try-error") {
+  #   par.cov.Gbase <-
+  #     try(optim(
+  #       par =  c(start_aux_betas, rep(-.1, ncv)),
+  #       fn = log.kumar.gbase,
+  #       control = list(fnscale = -1),
+  #       method = "BFGS",
+  #       # method = "L-BFGS-B",
+  #       # lower = c(rep(-Inf,6),0.25),
+  #       # upper = c(rep(Inf,6),0.95),
+  #       x = cov_a,
+  #       w = cov_delta,
+  #       y = y
+  #     ),
+  #     silent = T)
+  #
+  #   if (class(par.cov.Gbase) == "try-error") {
+  #     theta.start = c(0.80 ,0.20,-0.02 , rep(-.1, ncv))
+  #   }else{
+  #     theta.start = par.cov.Gbase$par
+  #   }
+  # } else{
+  #   theta.start = c(0.80 ,0.20,-0.02 , rep(-.1, ncv))
+  # }
 
-    if (class(par.cov.Gbase) == "try-error") {
-      theta.start = c(0.80 ,0.20,-0.02 , rep(-.1, ncv))
-    }else{
-      theta.start = par.cov.Gbase$par
-    }
-  } else{
-    theta.start = c(0.80 ,0.20,-0.02 , rep(-.1, ncv))
-  }
 
-
-  theta.start = c(theta.start, .5)
+  theta.start = c(round(start_aux_betas,2),-.1,-.1,0.5)
   value.start = theta.start
 
   repeat {
@@ -108,6 +103,8 @@ snowfall.estimates_Method_3 = function(steps,model,alpha,erro=10^(-4)) {
         y = y,
         lambda = lambda,
         alpha = alpha,
+        ncx=ncx,
+        ncv=ncv,
         hessian = T
       ),
       silent = T)
@@ -143,6 +140,8 @@ snowfall.estimates_Method_3 = function(steps,model,alpha,erro=10^(-4)) {
         x = cov_a,
         w = cov_delta,
         y = y,
+        ncx = ncx,
+        ncv = ncv,
         theta = c(emv.beta$par, emv.lambda$par),
         hessian = T
       ),
@@ -176,13 +175,13 @@ snowfall.estimates_Method_3 = function(steps,model,alpha,erro=10^(-4)) {
 
   if (length(which(is.na(estimates.aux$par) == T)) == 0) {
     emv = list()
-    emv <- estimates.aux$par
+    emv <- round(estimates.aux$par,2)
     emv.BETA = list()
-    emv.BETA$hessian = emv.beta$hessian
+    emv.BETA$hessian = round(emv.beta$hessian,2)
     emv.LAMBDA = list()
-    emv.LAMBDA$hessian = emv.lambda$hessian
+    emv.LAMBDA$hessian = round(emv.lambda$hessian,2)
     emv.ALPHA = list()
-    emv.ALPHA$hessian = emv.alpha$hessian
+    emv.ALPHA$hessian = round(emv.alpha$hessian,2)
   }else{
     emv = list()
     emv <- estimates.aux$par
@@ -204,13 +203,15 @@ snowfall.estimates_Method_3 = function(steps,model,alpha,erro=10^(-4)) {
     "alpha95",
     ".txt"
   )
-estimates = data.frame(steps,emv,par_names,value.start)
+estimates = data.frame(steps,emv,par_names)
   write.table(
     estimates,
     path_estimates,
     col.names = F,
     row.names = F,
     append = T,
+    quote = F,
+    sep=" "
   )
 
   path_hessian_covBeta = paste0(
@@ -280,19 +281,28 @@ estimates = data.frame(steps,emv,par_names,value.start)
 #   "alpha95",
 #   ".txt"
 # )
-alphas = c(0.95, 0.80, 0.65, 0.50, 0.35) # values real alpha
+#alphas = c(0.95, 0.80, 0.65, 0.50, 0.35) # values real alpha
 model = 1
 n = 144 # length of series
 MC = 1000
-cpus <-5
-ncv  = 2
-ncx = 3
+cpus <-8
+#ncv  = 2
+#ncx = 3
+formula <- RH ~ sent + cost | semester
 
+alpha.value <- c (
+
+"alpha35",
+ "alpha50",
+"alpha65",
+ "alpha80",
+"alpha95"
+)
 erro = 10 ^ (-4)
-alphas = c(0.95)
+#alpha. = c(0.95)
 require(snowfall)
 
-sfInit(cpus=6,type = "SOCK",parallel=TRUE)
+sfInit(cpus=5,type = "SOCK",parallel=TRUE)
 sfExportAll()
 #sfLibrary("snowfall")
 sfLibrary(tidyr)
@@ -301,18 +311,19 @@ sfLibrary(extraDistr)
 sfLibrary(Formula)
 #sfClusterSetupRNG(seed=7221)
 tic <- tictoc::tic()
-for (alpha. in alphas) {
-  cat(alpha., "\r")
+#for (alpha. in alphas) {
+  #cat(alpha., "\r")
  # alpha. = 0.95
-  # sfClusterApplyLB( 1:MC,
-  #                   model = model,
-  #                   alpha = alpha.,
-  #                   fun=snowfall.estimates_Method_3
-  #                 )
-  sfLapply( 1:MC,
+# sfClusterApplyLB( 1:MC,fun = snowfall.estimates_Method_3,
+#           model = model,
+#           alpha.value = "alpha95",
+#           formula = formula
+# )
+  sfLapply( 1:MC,fun = snowfall.estimates_Method_3,
                     model = model,
-                    alpha = alpha.,
-                    fun=snowfall.estimates_Method_3)
-}
+            alpha.value = "alpha95",
+            formula = formula
+                    )
+#}
 toc <- tictoc::toc()
 sfStop()

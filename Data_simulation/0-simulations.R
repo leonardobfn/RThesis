@@ -61,6 +61,6 @@ toc <- tictoc::toc()
 sfStop()
 #399.16 sec elapsed
 
-b = read.table("Data_simulation/Model_1/simulations/n144/alpha95/data2.txt")
+b = read.table("Data_simulation/Model_1/simulations/n144/alpha95/data1.txt")
 plot.ts(b$y)
 

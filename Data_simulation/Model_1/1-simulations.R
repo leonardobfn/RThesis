@@ -54,7 +54,7 @@ database <- data_1 %>%
 head(database, 13)
 citys <- database$City %>% unique()
 results <- results.mar <- matrix(0, length(citys), 8)
-TT = 143
+TT = 215
 y.data <- matrix(0, length(citys), TT + 1)
 tic <- tictoc::tic()
 p = 10 # manaus
@@ -64,6 +64,8 @@ data$precp[data$precp == 0] <- 1
 #formula <- RH ~ lles | lles - 1
 formula <- RH ~ sent + cost | semester
 mf <- model.frame(Formula::Formula(formula), data = data)
+write.table(mf[,-1],"Data_simulation/covariates.txt")
+
 y <- model.response(mf)
 cov_a <-
   model.matrix(Formula::Formula(formula), data = data, rhs = 1)

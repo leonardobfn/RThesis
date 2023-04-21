@@ -30,30 +30,66 @@ log.f.cond <- function(theta,y,x,w,ncx,ncv){
 }
 
 #snowfall.simulation--------
-snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
-  #id=1
-  # alpha = 0.5
-  # alpha = 0.8
-  #nn = 144;alpha=0.35
+snowfall.simulation = function(steps,
+                               model,
+                               alpha.value,
+                               formula,
+                               wd_sample,
+                               wd,
+                               wd_covariates,
+                               n)
+{
+  # model=1
+  #  steps = 650
+  #  alpha.value = "alpha95"
+  #print(MC)
 
-  alpha.value <- switch (
-    as.character(alpha),
-    "0.35" = "alpha35",
-    "0.5" = "alpha50",
-    "0.65" = "alpha65",
-    "0.8" = "alpha80",
-    "0.95" = "alpha95"
-  )
+  # setwd(wd_sample)
+  # path.sample = paste0("Model_", model,"/simulations/",alpha.value,"/")
+  # #file.sample = paste0( path.sample, data.labels[steps])
+  # file.sample = paste0( path.sample,"data",steps,".txt")
+  # data.sample = read.table(file.sample)
+  # wd_covariates=wd.covariates
+  #wd_sample = wd.sample
+  # formula = FORMULA
+  #n = 216
+  setwd(wd_covariates)
+  covi = read.table("covariates.txt")[1:n,]
 
-  path.sample <-
-    paste0("Data_simulation/Model_",
-           model,
-           "/simulations/",
-           alpha.value,
-           "/data",
-           MC,
-           ".txt")
+  covi$semester <- as.factor(covi$semester)
 
+  data = data.frame(covi, RH = rnorm(nrow(covi)))
+  mf <- model.frame(Formula::Formula(formula), data = data)
+  #y <- model.response(mf)
+  cov_a <-
+    model.matrix(Formula::Formula(formula),
+                 data = data,
+                 rhs = 1)
+  cov_delta <-
+    model.matrix(Formula::Formula(formula),
+                 data = data,
+                 rhs = 2)
+
+  ncx <- ncol(cov_a)
+
+  ncv <- ncol(cov_delta)
+  par_names <- c(paste0(colnames(cov_a), "_a"),
+                 paste0(colnames(cov_delta), "_delta"),
+                 "alpha")
+
+  par_real = read.table(paste0("real_par_model_", model, ".txt"))
+  beta.real <- par_real[c(1:ncx), 1]
+  lambda.real <-
+    par_real[c((1 + ncx):(ncx + ncv)), 1] %>% as.matrix()
+  alpha_ger <-
+    paste0("0.", stringr::str_sub(alpha.value, 6, 7)) %>% as.numeric()
+
+  a = exp(cov_a %*% beta.real)
+  delta = exp(cov_delta %*% lambda.real)
+  b = 1 / delta
+
+  # geração dos dados inicio----------
+  nn = n
   yt.y1 = matrix(0, nn, 1)
 
   at1 = a[1]
@@ -62,28 +98,14 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
   repeat {
     u1 = runif(1)
     #G = (1 - .8 ^ (1 / b[1])) ^ a[1]
-    y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
+    y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha_ger))) ^ (1 / at1)
     yt.y1[1] <-  y1
-    if( format( y1 ) != 1 & format( y1 ) != 0)
+    if (format(y1) != 1 & format(y1) != 0)
       break
   }
 
-  y.aux <- data.frame(y.sim = yt.y1[1],
-                      t = 1,
-                      alpha = alpha)
-
-  write.table(
-    y.aux,
-    path.sample,
-    sep = " ",
-    append = T,
-    quote = T,
-    row.names = F,
-    col.names = F
-  )
-
   for (i in 2:nn) {
-    #i=96
+    #i = 84
     at1 = a[i - 1]
     bt1 = b[i - 1]
     at = a[i]
@@ -99,25 +121,25 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
     int.yt = try (uniroot(
       p.cond,
-      interval = c(0,1),
+      interval = c(0, 1),
       u = 1 - u2,
       y.t.1 = yt.y1[i - 1],
       at1 = at1,
       at = at,
       bt1 = bt1,
       bt = bt,
-      alpha = alpha
+      alpha = alpha_ger
     ),
     silent = T)
 
     if (class(int.yt) == "try-error" & i == 2) {
-      repeat{
+      repeat {
         repeat {
           u1 = runif(1)
           #G = (1 - .8 ^ (1 / b[1])) ^ a[1]
-          y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
+          y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha_ger))) ^ (1 / at1)
           yt.y1[1] <-  y1
-          if( format( y1 ) != 1 & format( y1 ) != 0)
+          if (format(y1) != 1 & format(y1) != 0)
             break
         }
 
@@ -125,14 +147,14 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0,1),
+          interval = c(0, 1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 1],
           at1 = at1,
           at = at,
           bt1 = bt1,
           bt = bt,
-          alpha = alpha
+          alpha = alpha_ger
         ),
         silent = T)
 
@@ -143,15 +165,25 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
     }
     #int.yt = list()
     #int.yt$root = 0.000000e+00
-    if (class(int.yt) != "try-error" & i == 2 & (format(int.yt$root)==0|format(int.yt$root)==1)) {
+    if (class(int.yt) == "try-error") {
+      int.yt = list()
+      int.yt$root = 0
+      test2 = "try-error"
+    } else{
+      test2 = "no-error"
+    }
+
+    if (class(int.yt) != "try-error" &
+        i == 2 &
+        (format(int.yt$root) == 0 | format(int.yt$root) == 1)) {
       test = "try-error"
-      while(test == "try-error") {
+      while (test == "try-error") {
         repeat {
           u1 = runif(1)
           #G = (1 - .8 ^ (1 / b[1])) ^ a[1]
-          y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha))) ^ (1 / at1)
+          y1 = (1 - exp(-(1 / bt1) * (-log(1 - u1)) ^ (1 / alpha_ger))) ^ (1 / at1)
           yt.y1[1] <-  y1
-          if( format( y1 ) != 1 & format( y1 ) != 0)
+          if (format(y1) != 1 & format(y1) != 0)
             break
         }
 
@@ -159,22 +191,23 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0,1),
+          interval = c(0, 1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 1],
           at1 = at1,
           at = at,
           bt1 = bt1,
           bt = bt,
-          alpha = alpha
+          alpha = alpha_ger
         ),
         silent = T)
-        test = class( int.yt )
-        if(test!="try-error" ){
-          if(format(int.yt$root)!=0 & format(int.yt$root)!=1)
-            break else{
-              test = "try-error"
-            }
+        test = class(int.yt)
+        if (test != "try-error") {
+          if (format(int.yt$root) != 0 & format(int.yt$root) != 1)
+            break
+          else{
+            test = "try-error"
+          }
         }
         # if (class(int.yt) != "try-error") {
         #   break
@@ -182,10 +215,9 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
       }
     }
 
-    if (class(int.yt) == "try-error" & i>2) {
-
+    if ((class(int.yt) == "try-error" |
+         test2 == "try-error") & i > 2) {
       repeat {
-
         u2 = runif(1, 0, 1)
         at1 = a[i - 2]
         bt1 = b[i - 2]
@@ -194,20 +226,22 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0,1),
+          interval = c(0, 1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 2],
           at1 = at1,
           at = at,
           bt1 = bt1,
           bt = bt,
-          alpha = alpha
+          alpha = alpha_ger
         ),
         silent = T)
-        if(class(int.yt)=="try-error"){
+        if (class(int.yt) == "try-error") {
           int.yt = list()
           int.yt$root <- NA
+
         }
+
         yt.y1[i - 1] <- int.yt$root
 
         u2 = runif(1, 0, 1)
@@ -218,28 +252,28 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0,1),
+          interval = c(0, 1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 1],
           at1 = at1,
           at = at,
           bt1 = bt1,
           bt = bt,
-          alpha = alpha
+          alpha = alpha_ger
         ),
         silent = T)
 
         if (class(int.yt) != "try-error") {
           break
         }
-
       }
     }
 
-    if (class(int.yt) != "try-error" & i>2 & (format(int.yt$root)==0|format(int.yt$root)==1)) {
+    if (class(int.yt) != "try-error" &
+        i > 2 &
+        (format(int.yt$root) == 0 | format(int.yt$root) == 1)) {
       test = "try-error"
-      while(test == "try-error") {
-
+      while (test == "try-error") {
         u2 = runif(1, 0, 1)
         at1 = a[i - 2]
         bt1 = b[i - 2]
@@ -248,18 +282,18 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0,1),
+          interval = c(0, 1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 2],
           at1 = at1,
           at = at,
           bt1 = bt1,
           bt = bt,
-          alpha = alpha
+          alpha = alpha_ger
         ),
         silent = T)
 
-        if(class(int.yt)=="try-error"){
+        if (class(int.yt) == "try-error") {
           int.yt = list()
           int.yt$root <- NA
         }
@@ -274,24 +308,25 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
 
         int.yt = try (uniroot(
           p.cond,
-          interval = c(0,1),
+          interval = c(0, 1),
           u = 1 - u2,
           y.t.1 = yt.y1[i - 1],
           at1 = at1,
           at = at,
           bt1 = bt1,
           bt = bt,
-          alpha = alpha
+          alpha = alpha_ger
         ),
         silent = T)
 
-        test = class( int.yt )
+        test = class(int.yt)
 
-        if(test!="try-error" ){
-          if(format(int.yt$root)!=0 & format(int.yt$root)!=1)
-            break else{
-              test = "try-error"
-            }
+        if (test != "try-error") {
+          if (format(int.yt$root) != 0 & format(int.yt$root) != 1)
+            break
+          else{
+            test = "try-error"
+          }
         }
 
         # if (class(int.yt) != "try-error") {
@@ -302,23 +337,22 @@ snowfall.simulation <- function(nn, a, b, alpha, model, MC) {
     }
 
     yt.y1[i] <- int.yt$root
-
-    y.aux <- data.frame(y.sim = yt.y1[i],
-                        t = i,
-                        alpha = alpha)
-
-    write.table(
-      y.aux,
-      path.sample,
-      sep = " ",
-      append = T,
-      quote = T,
-      row.names = F,
-      col.names = F
-    )
   }
+
+  y = yt.y1
+  setwd(wd)
+  setwd(wd_sample)
+  file.sample  = paste0(alpha.value, "/data", steps, ".txt")
+
+  y.data = data.frame(
+    y = y,
+    alpha = rep(alpha_ger, length(y)),
+    Model = rep(paste0("Model ", model), length(y))
+  )
+  #saveRDS(y.data, file.sample)
+  write.table(y.data, file.sample)
+  setwd(wd)
 }
-#não mexxer
 
 
 
@@ -577,8 +611,10 @@ log.like_conditionl_covariates_EM = function(theta, y, x, w, Etil1,ncx,ncv) {
               log.p = FALSE)
   d = dkumar(y, a, b = 1 / delta, log = FALSE)
   r  = d / Gb
-
-  L = sum(Etil1 * log(Gb) + log(r), na.rm = T)
+  l = Etil1 * log(Gb)
+  l = l[is.finite(l)]
+  r. = r[is.finite(r)]
+  L = sum(l + log(r.), na.rm = T)
 
   return(L)
 }
@@ -606,79 +642,90 @@ V = function(theta, x, w, y,ncx,ncv) {
   return(v)
 }
 
+
 # derivate function--------
 
-d_vn = function(N, alpha, v) {
-  #ok
-  #N=TT;v=v;alpha=0.4753165
+d_vn = function(N,alpha,v){
+  #N=1;v=2;alpha=.5
 
-  if (N == 1) {
-    dvn = alpha * v ^ (alpha - 1)
-    qnj = 1
-    f_alpha_v = alpha ^ ((N)) * v ^ (((N)) * alpha - N)
-    dvn <- (-1) ^ N * sum(f_alpha_v * qnj) * exp(-v ^ alpha)
-    return(list(
-      dvn = dvn,
-      qnj = qnj,
-      f_alpha_v = f_alpha_v
-    ))
+  if(N==1){
+    dvn = alpha*v^(alpha-1)
+    qnj=1
+    f_alpha_v = alpha^((N))*v^(((N))*alpha-N)
+    dvn <- (-1)^N*sum(f_alpha_v*qnj)*exp(-v^alpha)
+    return(list(dvn=dvn,qnj=qnj,f_alpha_v=f_alpha_v))
   }
 
-  qnj <-  matrix(0, nrow = N, ncol = N + 1)
-  qnj[, 1]  <- 0
+  qnj <-  matrix(0, nrow = N, ncol = N+1)
+  qnj[,1]  <- 0
 
-  colnames(qnj) = paste0("j=", seq(0, N))
-  rownames(qnj) = paste0("N=", seq(1, N))
+  colnames(qnj) = paste0("j=",seq(0,N))
+  rownames(qnj) = paste0("N=",seq(1,N))
 
-  for (n in 1:N) {
-    qnj[n, n + 1] <- 1
+  for(n in 1:N){
+    qnj[n,n+1] <- 1
   }
-  for (n in 2:N) {
-    for (j_pos in 2:(N)) {
+
+  for(n in 2:N){
+
+    for(j_pos in 2:(N)){
+
       #j = j_pos-1
-      qnj[n, j_pos] <-
-        qnj[n - 1, j_pos - 1] + (n - 1 - (j_pos - 1) * alpha) * qnj[n - 1, j_pos]
+      qnj[n,j_pos] <- qnj[n-1,j_pos-1] + (n-1-(j_pos-1)*alpha)*qnj[n-1,j_pos]
     }
   }
 
-  f_alpha_v = alpha ^ ((0:N)) * v ^ (((0:N)) * alpha - N)
-  dvn <- (-1) ^ N * sum(f_alpha_v * qnj[N, ]) * exp(-v ^ alpha)
-  return(list(
-    dvn = dvn,
-    qnj = qnj,
-    f_alpha_v = f_alpha_v
-  ))
+  f_alpha_v = alpha^((0:N))*v^(((0:N))*alpha-N)
+  dvn <- (-1)^N*sum(f_alpha_v*qnj[N,])*exp(-v^alpha)
+  return(list(dvn=dvn,qnj=qnj,f_alpha_v=f_alpha_v))
 }
 
-snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
+snowfall.estimates_Method_1 = function(steps,
+                                       model,
+                                       alpha.value,
+                                       erro = 10 ^ (-4),
+                                       formula,
+                                       wd_sample,
+                                       wd_results_emv,
+                                       wd_results_hessian,
+                                       wd,
+                                       wd_covariates,
+                                       n
+)
+{
   # model=1
-  #  steps = 1
-  #   alpha = 0.35
-  #  print(MC)
+  #  steps = 650
+  #
+  #print(MC)
 
-  alpha.value <- switch (
-    as.character(alpha),
-    "0.35" = "alpha35",
-    "0.5" = "alpha50",
-    "0.65" = "alpha65",
-    "0.8" = "alpha80",
-    "0.95" = "alpha95"
-  )
-  path.sample <- paste0("Data_simulation/Model_",
-                        model,
-                        "/simulations/",
-                        alpha.value,
-                        "/data",
-                        steps,
-                        ".txt")
+  # setwd(wd_sample)
+  # path.sample = paste0("Model_", model,"/simulations/",alpha.value,"/")
+  # #file.sample = paste0( path.sample, data.labels[steps])
+  # file.sample = paste0( path.sample,"data",steps,".txt")
+  # data.sample = read.table(file.sample)
+  # erro = 10^(-4)
+  # wd_covariates=wd.covariates
+  # wd_results_emv = wd.results_emv
+  # wd_results_hessian = wd.results_emv
+  # wd_sample = wd.sample
+  # wd= wd.
+  # model = 1
+  # alpha.value = "alpha50"
+  # formula = FORMULA
+  # steps = 1025
+  # n = n.
 
+  setwd(wd)
+  setwd(wd_sample)
+  file.sample = paste0(alpha.value,"/data",steps,".txt")
+  data.sample = read.table(file.sample)
+  setwd(wd)
+  setwd(wd_covariates)
+  covi = read.table("covariates.txt")[1:n,]
 
-  s = read.table(path.sample)
-
-  covi = read.table("Data_simulation/covariates.txt")
   covi$semester <- as.factor(covi$semester)
-  data = data.frame(covi, RH = s$V1)
-  formula <- RH ~ sent + cost | semester
+
+  data = data.frame(covi, RH = data.sample$y)
   mf <- model.frame(Formula::Formula(formula), data = data)
   y <- model.response(mf)
   cov_a <-
@@ -689,50 +736,22 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     model.matrix(Formula::Formula(formula),
                  data = data,
                  rhs = 2)
+
   ncx <- ncol(cov_a)
 
   ncv <- ncol(cov_delta)
-
   par_names <- c(paste0(colnames(cov_a), "_a"),
                  paste0(colnames(cov_delta), "_delta"),
                  "alpha")
-  start_aux_betas = coef(lm(-log(-log(RH)) ~ sent + cost, data = data))
+  par_real = read.table(paste0("real_par_model_", model, ".txt"))
 
-  start_aux <-
-    c(start_aux_betas, -.1, -.1)
 
-  par.cov.Gbase <-
-    try(optim(
-      par =  c(start_aux),
-      fn = log.kumar.gbase,
-      control = list(fnscale = -1),
-      method = "BFGS",
-      # method = "L-BFGS-B",
-      # lower = c(rep(-Inf,6),0.25),
-      # upper = c(rep(Inf,6),0.95),
-      x = cov_a,
-      w = cov_delta,
-      y = y
-    ),
-    silent = T)
+  start_aux_betas = try(coef(lm(-log(-log(RH)) ~ sent + cost, data = data)))
 
-  if (class(par.cov.Gbase) == "try-error") {
-    start_aux_lambdas = try(betareg::betareg(
-      formula = formula,
-      link = "loglog",
-      link.phi = "log",
-      data = data
-    )$coefficients$precision,silent = T)
-    if(class(start_aux_lambdas)=="try-error"){
-      start_aux = c(start_aux_betas,-2,-2)
-    }else{
-      start_aux <-
-        c(start_aux_betas, start_aux_lambdas)
-    }
-
+  if (class(start_aux_betas) != "try-error") {
     par.cov.Gbase <-
       try(optim(
-        par =  c(start_aux),
+        par =  c(start_aux_betas, rep(-.1, ncv)),
         fn = log.kumar.gbase,
         control = list(fnscale = -1),
         method = "BFGS",
@@ -741,99 +760,444 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
         # upper = c(rep(Inf,6),0.95),
         x = cov_a,
         w = cov_delta,
-        y = y
+        y = y,
+        ncx=ncx,
+        ncv=ncv
       ),
       silent = T)
 
+    if (class(par.cov.Gbase) != "try-error" & par.cov.Gbase$value==0) {
+      theta.start = c(0.80 ,0.20,-0.02 , rep(-.1, ncv))
+    }
+
     if (class(par.cov.Gbase) == "try-error") {
-      par.cov.Gbase = list()
-      par.cov.Gbase$par <- rep(NA,ncx+ncv+1)
+      theta.start = c(0.80 ,0.20,-0.02 , rep(-.1, ncv))
+    }else{
+      theta.start = par.cov.Gbase$par
+    }
+  } else{
+    theta.start = c(0.80 ,0.20,-0.02 , rep(-.1, ncv))
+  }
+
+
+  theta.start = c(par.cov.Gbase$par,0.5)
+  value.start = theta.start
+
+  repeat {
+
+    beta <- theta.start[c(1:ncx)]
+    lambda <- theta.start[c((1 + ncx):(ncx + ncv))]
+    alpha <- theta.start[-c((1):(ncx + ncv))]
+
+    emv.beta <-
+      try(optim(
+        par = beta,
+        fn = log.f.cond.beta,
+        control = list(fnscale = -1),
+        method = "BFGS",
+        # method = "L-BFGS-B",
+        # lower = c(rep(-Inf,ncx+ncv),0.25),
+        # upper = c(rep(Inf,ncx+ncv),0.95),
+        x = cov_a,
+        w = cov_delta,
+        y = y,
+        lambda = lambda,
+        alpha = alpha,
+        ncx = ncx,
+        ncv = ncv,
+        hessian = T
+      ),
+      silent = T)
+
+    emv.lambda <-
+      try(optim(
+        par = lambda,
+        fn = log.f.cond.lambda,
+        control = list(fnscale = -1),
+        method = "BFGS",
+        # method = "L-BFGS-B",
+        # lower = c(rep(-Inf,ncx+ncv),0.25),
+        # upper = c(rep(Inf,ncx+ncv),0.95),
+        x = cov_a,
+        w = cov_delta,
+        y = y,
+        beta = emv.beta$par,
+        alpha = alpha,
+        hessian = T
+      ),
+      silent = T)
+
+
+    emv.alpha <-
+      try(optim(
+        par = alpha,
+        fn = log.f.cond.alpha,
+        control = list(fnscale = -1),
+        #method = "BFGS",
+        method = "L-BFGS-B",
+        lower = c(0.1),
+        upper = c(.99),
+        x = cov_a,
+        w = cov_delta,
+        y = y,
+        ncx = ncx,
+        ncv = ncv,
+        theta = c(emv.beta$par, emv.lambda$par),
+        hessian = T
+      ),
+      silent = T)
+
+    # if (class(emv.alpha) != "try-error" & emv.alpha$value == 0) {
+    #   estimates.aux = list()
+    #   estimates.aux$par = rep(NA, ncx + ncv + 1)
+    #   break
+    # }
+    #
+    # if (class(emv.alpha) == "try-error") {
+    #   estimates.aux = list()
+    #   estimates.aux$par = rep(NA, ncx + ncv + 1)
+    #   break
+    # } else{
+    #   theta.up <- c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+    # }
+
+    if (class(emv.alpha) == "try-error") {
+      estimates.aux = list()
+      estimates.aux$par = rep(NA, ncx + ncv + 1)
+      break
+    }
+
+    if (class(emv.alpha) != "try-error" & emv.alpha$value == 0) {
+      estimates.aux = list()
+      estimates.aux$par = rep(NA, ncx + ncv + 1)
+      break
+    }
+
+    theta.up <- c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+
+
+    crit <- sum(((theta.up - theta.start) / theta.start) ^ 2)
+
+    if (crit < erro) {
+      estimates.aux = list()
+      estimates.aux$par = c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+      break
+    } else{
+      theta.start = c(emv.beta$par, emv.lambda$par, emv.alpha$par)
     }
 
   }
 
-  # estimates.aux <-
-  #   try(optim(
-  #     par = c(par.cov.Gbase$par,.5),
-  #     fn = log.f.cond,
-  #     control = list(fnscale = -1),
-  #     method = "BFGS",
-  #     # method = "L-BFGS-B",
-  #     #  lower = c(rep(-Inf,ncx+ncv),0.01),
-  #     #  upper = c(rep(Inf,ncx+ncv),1),
-  #     x = cov_a,
-  #     w = cov_delta,
-  #     y = y
-  #   ),
-  #   silent = T)
-  #theta.start = c(start_aux,.5)
+  if (length(which(is.na(estimates.aux$par) == T)) == 0) {
+    emv = list()
+    emv <- round(estimates.aux$par, 4)
+    emv.BETA = list()
+    emv.BETA$hessian = round(emv.beta$hessian, 4)
+    emv.LAMBDA = list()
+    emv.LAMBDA$hessian = round(emv.lambda$hessian, 4)
+    emv.ALPHA = list()
+    emv.ALPHA$hessian = round(emv.alpha$hessian, 4)
+  } else{
+    emv = list()
+    emv <- estimates.aux$par
+    emv.BETA = list()
+    emv.BETA$hessian = matrix(0, ncx, ncx)
+    emv.LAMBDA = list()
+    emv.LAMBDA$hessian = matrix(0, ncv, ncv)
+    emv.ALPHA = list()
+    emv.ALPHA$hessian = 0
+  }
+  setwd(wd)
+  setwd(wd_results_emv)
+  #steps=1
+  file.estimates.emv  = paste0("estimates_",alpha.value,"_n",n, ".txt")
 
-  theta.start = c(par.cov.Gbase$par, .5)
+  estimates = data.frame(steps = rep(steps,ncx+ncv+1),
+                         alpha = rep(data.sample$alpha[1],ncx+ncv+1),
+                         par_name = par_names,
+                         par_real = c(par_real[,1],data.sample$alpha[1]),
+                         emv,
+                         Method = rep("Method 1",ncx+ncv+1),
+                         n = rep(n,ncx+ncv+1),
+                         Model = rep(paste0("Model ",model),ncx+ncv+1),
+                         value.start = round( value.start,4)
+  )
+
+  write.table(
+    estimates,
+    file.estimates.emv,
+    col.names = F,
+    row.names = F,
+    append = T,
+    quote = T,
+  )
+  setwd(wd)
+
+  setwd(wd.results_hessian)
+
+  file.hessian.alpha = paste0("hessian_",alpha.value,"_n",n, ".txt")
+  file.hessian.covBeta = paste0("hessian_Beta_",alpha.value,"_n",n,".txt")
+  file.hessian.covGamma = paste0("hessian_Gamma_",alpha.value,"_n",n,".txt")
+
+  hessianAlpha = cbind(steps, emv.ALPHA$hessian)
+  hessianCovBeta = cbind(steps, emv.BETA$hessian)
+  hessianCovLambda = cbind(steps, emv.LAMBDA$hessian)
+
+  write.table(
+    hessianAlpha,
+    file.hessian.alpha,
+    col.names = F,
+    row.names = F,
+    quote = T,
+    append = T
+  )
+
+  write.table(
+    hessianCovBeta,
+    file.hessian.covBeta,
+    col.names = F,
+    row.names = F,
+    quote = T,
+    append = T
+  )
+
+  write.table(
+    hessianCovLambda,
+    file.hessian.covGamma,
+    col.names = F,
+    row.names = F,
+    quote = T,
+    append = T
+  )
+
+  setwd(wd)
+}
+
+snowfall.estimates_Method_2 = function(steps,
+                                       model,
+                                       alpha.value,
+                                       erro = 10 ^ (-4),
+                                       formula,
+                                       wd_sample,
+                                       wd_results_emv,
+                                       wd_results_hessian,
+                                       wd,
+                                       wd_covariates,
+                                       n)
+{
+  # model=1
+  #  steps = 650
+  #
+  #print(MC)
 
 
-  beta <- theta.start[c(1:ncx)]
-  lambda <- theta.start[c((1 + ncx):(ncx + ncv))]
-  alpha <- theta.start[-c((1):(ncx + ncv))]
+  # erro = 10^(-4)
+  # wd_covariates=wd.covariates
+  # wd_results_emv = wd.results_emv
+  # wd_results_hessian = wd.results_emv
+  # wd_sample = wd.sample
+  # wd= wd.
+  # model = 1
+  # alpha.value = "alpha50"
+  # formula = FORMULA
+  # steps = 1025
+  # n = n.
 
-  emv.alpha <-
-    try(optim(
-      par = alpha,
-      fn = log.f.cond.alpha,
-      control = list(fnscale = -1),
-      #method = "BFGS",
-      method = "L-BFGS-B",
-      lower = c(0.1),
-      upper = c(1),
-      x = cov_a,
-      w = cov_delta,
-      y = y,
-      theta = c(beta, lambda),
-      hessian = T
-    ),
-    silent = T)
+  setwd(wd)
+  setwd(wd_sample)
+  file.sample = paste0(alpha.value, "/data", steps, ".txt")
+  data.sample = read.table(file.sample)
+  setwd(wd)
+  setwd(wd_covariates)
+  covi = read.table("covariates.txt")[1:n, ]
 
-  if(class(emv.alpha)=="try-error"|emv.alpha$value==0){
-    estimates.aux = list()
-    estimates.aux$par = rep(NA,ncx+ncv+1)
-  }else{
-    estimates.aux = list()
-    estimates.aux$par = c(beta,lambda,emv.alpha$par)
+  covi$semester <- as.factor(covi$semester)
+
+  data = data.frame(covi, RH = data.sample$y)
+  mf <- model.frame(Formula::Formula(formula), data = data)
+  y <- model.response(mf)
+  cov_a <-
+    model.matrix(Formula::Formula(formula),
+                 data = data,
+                 rhs = 1)
+  cov_delta <-
+    model.matrix(Formula::Formula(formula),
+                 data = data,
+                 rhs = 2)
+
+  ncx <- ncol(cov_a)
+
+  ncv <- ncol(cov_delta)
+  par_names <- c(paste0(colnames(cov_a), "_a"),
+                 paste0(colnames(cov_delta), "_delta"),
+                 "alpha")
+  par_real = read.table(paste0("real_par_model_", model, ".txt"))
+
+
+  start_aux_betas = try(coef(lm(-log(-log(RH)) ~ sent + cost, data = data)))
+
+  if (class(start_aux_betas) != "try-error") {
+    par.cov.Gbase <-
+      try(optim(
+        par =  c(start_aux_betas, rep(-.1, ncv)),
+        fn = log.kumar.gbase,
+        control = list(fnscale = -1),
+        method = "BFGS",
+        # method = "L-BFGS-B",
+        # lower = c(rep(-Inf,6),0.25),
+        # upper = c(rep(Inf,6),0.95),
+        x = cov_a,
+        w = cov_delta,
+        y = y,
+        ncx = ncx,
+        ncv = ncv
+      ),
+      silent = T)
+
+    if (class(par.cov.Gbase) != "try-error" &
+        par.cov.Gbase$value == 0) {
+      theta.start = c(0.80 , 0.20, -0.02 , rep(-.1, ncv))
+    }
+
+    if (class(par.cov.Gbase) == "try-error") {
+      theta.start = c(0.80 , 0.20, -0.02 , rep(-.1, ncv))
+    } else{
+      theta.start = par.cov.Gbase$par
+    }
+  } else{
+    theta.start = c(0.80 , 0.20, -0.02 , rep(-.1, ncv))
   }
 
+
+  theta.start = c(par.cov.Gbase$par, 0.5)
+
+
+  repeat {
+    beta <- theta.start[c(1:ncx)]
+    lambda <- theta.start[c((1 + ncx):(ncx + ncv))]
+    alpha <- theta.start[-c((1):(ncx + ncv))]
+
+    emv.beta <-
+      try(optim(
+        par = beta,
+        fn = log.f.cond.beta,
+        control = list(fnscale = -1),
+        method = "BFGS",
+        # method = "L-BFGS-B",
+        # lower = c(rep(-Inf,ncx+ncv),0.25),
+        # upper = c(rep(Inf,ncx+ncv),0.95),
+        x = cov_a,
+        w = cov_delta,
+        y = y,
+        lambda = lambda,
+        alpha = alpha,
+        ncx = ncx,
+        ncv = ncv,
+        hessian = T
+      ),
+      silent = T)
+
+    emv.lambda <-
+      try(optim(
+        par = lambda,
+        fn = log.f.cond.lambda,
+        control = list(fnscale = -1),
+        method = "BFGS",
+        # method = "L-BFGS-B",
+        # lower = c(rep(-Inf,ncx+ncv),0.25),
+        # upper = c(rep(Inf,ncx+ncv),0.95),
+        x = cov_a,
+        w = cov_delta,
+        y = y,
+        beta = emv.beta$par,
+        alpha = alpha,
+        hessian = T
+      ),
+      silent = T)
+
+
+    emv.alpha <-
+      try(optim(
+        par = alpha,
+        fn = log.f.cond.alpha,
+        control = list(fnscale = -1),
+        #method = "BFGS",
+        method = "L-BFGS-B",
+        lower = c(0.1),
+        upper = c(.99),
+        x = cov_a,
+        w = cov_delta,
+        y = y,
+        ncx = ncx,
+        ncv = ncv,
+        theta = c(emv.beta$par, emv.lambda$par),
+        hessian = T
+      ),
+      silent = T)
+
+
+    if (class(emv.alpha) == "try-error") {
+      estimates.aux = list()
+      estimates.aux$par = rep(NA, ncx + ncv + 1)
+      break
+    }
+
+    if (class(emv.alpha) != "try-error" & emv.alpha$value == 0) {
+      estimates.aux = list()
+      estimates.aux$par = rep(NA, ncx + ncv + 1)
+      break
+    }
+
+    theta.up <- c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+
+    crit <- sum(((theta.up - theta.start) / theta.start) ^ 2)
+
+    if (crit < erro) {
+      estimates.aux = list()
+      estimates.aux$par = c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+      break
+    } else{
+      theta.start = c(emv.beta$par, emv.lambda$par, emv.alpha$par)
+    }
+
+  }
 
   alpha.up <- estimates.aux$par[-c(1:(ncx + ncv))]
   par.covariates.start <- estimates.aux$par[c(1:(ncx + ncv))]
-  #print(estimates.aux)
-  repeat {
+  value.start = c(estimates.aux$par[c(1:(ncx + ncv))],0.5)
 
-    if(length(which(is.na(estimates.aux$par)==T))>0){
+  repeat {
+    if (length(which(is.na(estimates.aux$par) == T)) > 0) {
       par.covariates.up = list()
-      par.covariates.up$value = 0
-      emv <- rep(NA,ncx+ncv+1)
+      par.covariates.up$hessian = matrix(0,ncx+ncv,ncx+ncv)
+      emv.alpha = list()
+      emv.alpha$hessian = c(0)
+      emv <- rep(NA, ncx + ncv + 1)
       break
     }
     #       # Step E-----
-    v <- try(V(
+    v <- V(
       theta = par.covariates.start,
       x = cov_a,
       w = cov_delta,
-      y = y
-    ),silent = T)
-
-    if(class(v)=="try-error"){
-      v = NA
-    }
+      y = y,
+      ncx=ncx,
+      ncv=ncv
+    )
 
 
     derivate_numerator <- try(d_vn(N = length(y) + 1,
                                    v = v,
                                    alpha = alpha.up)$dvn)
 
-    if(class(derivate_numerator)=="try-error" | is.finite(derivate_numerator)==F|
-       derivate_numerator==0){
+    if (class(derivate_numerator) == "try-error" |
+        is.finite(derivate_numerator) == F |
+        derivate_numerator == 0) {
       par.covariates.up = list()
-      par.covariates.up$value =0
-      emv <- rep(NA,ncx+ncv+1)
+      par.covariates.up$hessian = matrix(0,ncx+ncv,ncx+ncv)
+      emv.alpha = list()
+      emv.alpha$hessian = c(0)
+      emv <- rep(NA, ncx + ncv + 1)
       break
     }
 
@@ -841,12 +1205,14 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
                                      v = v,
                                      alpha = alpha.up)$dvn)
 
-    if(class(derivate_denominator)=="try-error" | is.finite(derivate_denominator)==F|
-       derivate_denominator==0){
-
+    if (class(derivate_denominator) == "try-error" |
+        is.finite(derivate_denominator) == F |
+        derivate_denominator == 0) {
       par.covariates.up = list()
-      par.covariates.up$value =0
-      emv <- rep(NA,ncx+ncv+1)
+      par.covariates.up$hessian = matrix(0,ncx+ncv,ncx+ncv)
+      emv.alpha = list()
+      emv.alpha$hessian = c(0)
+      emv <- rep(NA, ncx + ncv + 1)
       break
     }
 
@@ -863,15 +1229,29 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
         x = cov_a,
         w = cov_delta,
         y = y,
-        Etil1 =  Esp.z,
-        hessian = T
+        Etil1 = Esp.z,
+        hessian = T,
+        ncx = ncx,
+        ncv=ncv
       ),
       silent = T)
 
-    if(class(par.covariates.up)=="try-error"){
+    if (class(par.covariates.up) == "try-error") {
       par.covariates.up = list()
-      par.covariates.up$value =0
-      emv <- rep(NA,ncx+ncv+1)
+      par.covariates.up$hessian = matrix(0,ncx+ncv,ncx+ncv)
+      emv.alpha = list()
+      emv.alpha$hessian = c(0)
+      emv <- rep(NA, ncx + ncv + 1)
+      break
+    }
+
+    if (class(par.covariates.up) != "try-error" &
+        par.covariates.up$value == 0) {
+      par.covariates.up = list()
+      par.covariates.up$hessian = matrix(0,ncx+ncv,ncx+ncv)
+      emv.alpha = list()
+      emv.alpha$hessian = c(0)
+      emv <- rep(NA, ncx + ncv + 1)
       break
     }
 
@@ -887,85 +1267,64 @@ snowfall.estimates_Method_1 = function(steps, model, alpha,erro = 10 ^ (-4)){
     }
   }
 
-  if((class(par.covariates.up)!="try-error" & par.covariates.up$value ==0))
-  {
-    emv <- rep(NA,ncx+ncv+1)
-  }
 
 
-  path_estimates = paste0(
-    "Data_simulation/Model_",
-    model,
-    "/estimates/Method_1/estimates/",
-    "estimates",
-    alpha.value,
-    ".txt"
+
+  setwd(wd)
+  setwd(wd_results_emv)
+  #steps=1
+  file.estimates.emv  = paste0("estimates_", alpha.value, "_n", n, ".txt")
+
+  estimates = data.frame(
+    steps = rep(steps, ncx + ncv + 1),
+    alpha = rep(data.sample$alpha[1], ncx + ncv + 1),
+    par_name = par_names,
+    par_real = c(par_real[, 1], data.sample$alpha[1]),
+    emv,
+    Method = rep("Method 2", ncx + ncv + 1),
+    n = rep(n, ncx + ncv + 1),
+    Model = rep(paste0("Model ", model), ncx + ncv +
+                  1),
+    value.start = round(value.start, 4)
   )
 
-  estimates = data.frame(steps, emv, par_names)
   write.table(
     estimates,
-    path_estimates,
+    file.estimates.emv,
     col.names = F,
     row.names = F,
+    append = T,
     quote = T,
-    append = T
   )
+  setwd(wd)
 
-  # if(length(which(is.na(emv)==T)==0)){
-  # colnames(par.covariates.up$hessian) = par_names[-6]
-  # rownames(par.covariates.up$hessian) = par_names[-6]
-  # }
+  setwd(wd.results_hessian)
 
-  path_hessian_cov = paste0(
-    "Data_simulation/Model_",
-    model,
-    "/estimates/Method_1/hessian/",
-    "hessianCov_",
-    alpha.value,
-    ".txt"
-  )
-  if(length(which(is.na(emv)==T))>0){
-    par.covariates.up = list()
-    par.covariates.up$hessian <- matrix(0,ncx+ncv,ncx+ncv)
-    hessianCov = cbind(steps, par.covariates.up$hessian)
-  }else{
-    hessianCov = cbind(steps, par.covariates.up$hessian)
-  }
+  file.hessian.alpha = paste0("hessian_", alpha.value, "_n", n, ".txt")
+  file.hessian.cov = paste0("hessian_cov_", alpha.value, "_n", n, ".txt")
 
-
-  write.table(
-    hessianCov,
-    path_hessian_cov,
-    col.names = F,
-    row.names = F,
-    quote = T,
-    append = T
-  )
-
-  path_hessian_alpha = paste0(
-    "Data_simulation/Model_",
-    model,
-    "/estimates/Method_1/hessian/",
-    "hessian_",
-    alpha.value,
-    ".txt"
-  )
-  if(length(which(is.na(emv)==T))>0){
-    emv.alpha = list()
-    emv.alpha$hessian <- matrix(0,1,1)
-    hessianAlpha = cbind(steps, emv.alpha$hessian)
-  }else{
-    hessianAlpha = cbind(steps, emv.alpha$hessian)
-  }
+  hessianAlpha = cbind(steps, emv.alpha$hessian)
+  hessianCov = cbind(steps, par.covariates.up$hessian)
 
   write.table(
     hessianAlpha,
-    path_hessian_alpha,
+    file.hessian.alpha,
     col.names = F,
     row.names = F,
     quote = T,
     append = T
   )
+
+  write.table(
+    hessianCov,
+    file.hessian.cov,
+    col.names = F,
+    row.names = F,
+    quote = T,
+    append = T
+  )
+
+  setwd(wd)
 }
+
 

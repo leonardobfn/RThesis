@@ -2,6 +2,10 @@
 # Model 1
 dir.create("Data_simulation/Model_1")
 dir.create("Data_simulation/Model_1/simulations")
+dir.create("Data_simulation/Model_1/simulations/n84")
+dir.create("Data_simulation/Model_1/simulations/n144")
+dir.create("Data_simulation/Model_1/simulations/n168")
+dir.create("alpha80")
 dir.create("Data_simulation/Model_1/simulations/alpha35")
 dir.create("Data_simulation/Model_1/simulations/alpha50")
 dir.create("Data_simulation/Model_1/simulations/alpha65")

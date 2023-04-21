@@ -12,7 +12,7 @@ require(extraDistr)
 
 MODEL = 1
 n. = 144 # length of series
-MC = 1200
+MC = 10
 cpus <- 10
 #ncv  = 2
 #ncx = 3
@@ -60,3 +60,7 @@ for (alpha. in alpha_value) {
 toc <- tictoc::toc()
 sfStop()
 #399.16 sec elapsed
+
+b = read.table("Data_simulation/Model_1/simulations/n144/alpha95/data2.txt")
+plot.ts(b$y)
+

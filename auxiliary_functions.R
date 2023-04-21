@@ -12,7 +12,7 @@ log.f.cond <- function(theta,y,x,w,ncx,ncv){
   a = exp(xbeta)
   b = 1/delta
 
-  log.f.cond. = NULL
+  log.f.cond. =  NULL
 
   gt <- extraDistr::dkumar(y,a,b)
   Gt <- extraDistr::pkumar(y,a,b,lower.tail = F)

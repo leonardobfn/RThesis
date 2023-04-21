@@ -10,7 +10,8 @@ devtools::load_all() # meu pacote
 require(tidyr)
 require(dplyr)
 require(extraDistr)
-n. = c(84, 144, 168)
+#n. = c(84, 144, 168)
+n. = c(84)
 logs = NULL
 MODEL = 1
 FORMULA <- RH ~ sent + cost | semester
@@ -19,7 +20,7 @@ alpha_value <- c ("alpha35",
                   "alpha65",
                   "alpha80",
                   "alpha95")
-alpha_value = alpha_value[c(1, 2)]
+#alpha_value = alpha_value[c(1, 2)]
 MC = 3000
 cpus <- 8
 wd. = getwd()
@@ -53,11 +54,12 @@ for (k in n.) {
       Model = paste0("Model ", MODEL),
       time = toc$callback_msg
     )
-    logs = rbind(logs, logs.aux)
+    #logs = rbind(logs, logs.aux)
+    write.table(logs.aux, "Data_simulation/logs.txt",append = T,col.names = F,row.names = F)
   }
 }
 sfStop()
-write.table(logs, "Data_simulation/logs.txt")
+
 read.table("Data_simulation/logs.txt")
 #399.16 sec elapsed
 

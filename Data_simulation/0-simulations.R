@@ -1,10 +1,11 @@
 
 
 
+
 rm(list = ls())
 devtools::load_all() # meu pacote
 #devtools::install()
-require(RThesis)
+#require(RThesis)
 #packages--------------
 require(tidyr)
 require(dplyr)
@@ -18,9 +19,9 @@ alpha_value <- c ("alpha35",
                   "alpha65",
                   "alpha80",
                   "alpha95")
-alpha_value = alpha_value[c(1,2)]
-MC = 5
-cpus <- 5
+alpha_value = alpha_value[c(1, 2)]
+MC = 3000
+cpus <- 8
 wd. = getwd()
 require(snowfall)
 sfInit(cpus = cpus,
@@ -33,8 +34,6 @@ sfLibrary(dplyr)
 sfLibrary(extraDistr)
 sfLibrary(Formula)
 for (k in n.) {
-  #n. = N.[k] # length of series
-
   for (alpha. in alpha_value) {
     tic <- tictoc::tic()
     sfLapply(
@@ -47,16 +46,15 @@ for (k in n.) {
       n = k
     )
     toc <- tictoc::toc()
-    logs.aux = data.frame(
+    logs.aux = data.frame(MC = MC,
       cpus = cpus,
       n = k,
-      alpha = alpha.,
+      alpha = paste0("0.", stringr::str_sub(alpha., 6, 7)),
       Model = paste0("Model ", MODEL),
       time = toc$callback_msg
     )
     logs = rbind(logs, logs.aux)
   }
-  setwd(wd.)
 }
 sfStop()
 write.table(logs, "Data_simulation/logs.txt")

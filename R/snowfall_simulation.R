@@ -2,25 +2,18 @@ snowfall.simulation = function(steps,
                                model,
                                alpha.value,
                                formula,
-                               wd_sample,
                                wd,
-                               wd_covariates,
                                n)
 {
-  # model=1
-  #  steps = 650
-  #  alpha.value = "alpha95"
-  #print(MC)
 
-  # setwd(wd_sample)
-  # path.sample = paste0("Model_", model,"/simulations/",alpha.value,"/")
-  # #file.sample = paste0( path.sample, data.labels[steps])
-  # file.sample = paste0( path.sample,"data",steps,".txt")
-  # data.sample = read.table(file.sample)
-  # wd_covariates=wd.covariates
-  #wd_sample = wd.sample
+  #wd = wd.
   # formula = FORMULA
   #n = 216
+  #steps = 1
+
+  wd_sample = paste0(wd, "/Data_simulation/Model_", MODEL, "/simulations/n", n)
+  wd_covariates = paste0(wd, "/Data_simulation/")
+
   setwd(wd_covariates)
   covi = read.table("covariates.txt")[1:n,]
 
